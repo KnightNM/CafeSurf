@@ -1,4 +1,4 @@
-# SpaceBook Web
+# CafeSurf Web
 
 React/Vite web client for the existing cafe booking API.
 

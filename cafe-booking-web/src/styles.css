@@ -588,11 +588,6 @@ button:disabled {
   gap: 8px;
 }
 
-.statusPill.reserved {
-  color: #4d3507;
-  background: #f5d891;
-}
-
 .statusPill.checked_in {
   color: #143d2a;
   background: #bfe6cd;
@@ -1075,3 +1070,332 @@ button:disabled {
   }
 }
 
+/* ── CafeSurf Operational Visual System ─────────── */
+
+:root {
+  color: #151515;
+  background: #f3f3f1;
+}
+
+body {
+  background:
+    radial-gradient(circle at 82% 10%, rgba(0, 0, 0, 0.055), transparent 26rem),
+    linear-gradient(180deg, #f6f6f4 0%, #ededeb 100%);
+}
+
+.appShell,
+.authContainer {
+  position: relative;
+  isolation: isolate;
+  background: transparent;
+}
+
+.ambientScene {
+  position: fixed;
+  inset: auto 0 0 auto;
+  z-index: -1;
+  width: min(58vw, 760px);
+  height: min(52vh, 540px);
+  pointer-events: none;
+  opacity: 1;
+  filter: blur(0.1px);
+}
+
+.authContainer .ambientScene {
+  inset: 0 0 auto auto;
+  width: min(64vw, 820px);
+  height: min(54vh, 560px);
+}
+
+.sidebar {
+  color: #f4f4f2;
+  background: #101010;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.brandMark,
+.authBrand {
+  color: #f7f7f5;
+  background: #1f1f1f;
+  border: 1px solid #3b3b3b;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.brandBlock h1,
+.authHeader h1,
+.sectionHeader h2,
+.cafeCard h3,
+.cafeHero h2,
+.bookingGroup h3,
+.bookingCard h4,
+.cafeManageInfo h3,
+.confirmationPanel h3 {
+  color: #111;
+}
+
+.sidebar .brandBlock h1 {
+  color: #f7f7f5;
+}
+
+.brandBlock p,
+.eyebrow,
+.sidebar .brandBlock p,
+.userRole,
+.bookingCard dt,
+.bookingsTable th,
+.authHeader p,
+.authDemo p {
+  color: #707070;
+  letter-spacing: 0.03em;
+}
+
+.navTabs button,
+.sidebar .ghostButton {
+  color: #d8d8d4;
+  background: #181818;
+  border: 1px solid #2a2a2a;
+}
+
+.navTabs button.active {
+  color: #101010;
+  background: #f2f2ef;
+  border-color: #f2f2ef;
+}
+
+.filterPanel,
+.userPanel {
+  background: #151515;
+  border-color: #292929;
+}
+
+.mainColumn {
+  position: relative;
+  z-index: 1;
+}
+
+.toast,
+.toast.error,
+.authError {
+  color: #151515;
+  background: rgba(250, 250, 248, 0.94);
+  border-color: #c9c9c5;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.06);
+}
+
+.workspaceGrid,
+.bookingsPane,
+.dashboardPane,
+.cafeBookingsSection {
+  max-width: 1280px;
+}
+
+.ghostButton,
+.primaryButton,
+.dangerButton,
+.addButton,
+.toast button,
+.navTabs button {
+  border-radius: 6px;
+  transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease, box-shadow 0.16s ease;
+}
+
+.ghostButton:hover,
+.primaryButton:hover,
+.dangerButton:hover,
+.addButton:hover,
+.navTabs button:hover {
+  transform: translateY(-1px);
+}
+
+.ghostButton,
+.filterPanel select,
+.bookingControls input,
+.authForm input,
+.formGrid input[type="text"],
+.formGrid input[type="number"] {
+  color: #171717;
+  background: #fafaf8;
+  border-color: #cfcfca;
+}
+
+.primaryButton,
+.addButton {
+  color: #f7f7f5;
+  background: #151515;
+  border: 1px solid #151515;
+}
+
+.primaryButton:hover,
+.addButton:hover {
+  background: #2a2a2a;
+}
+
+.dangerButton {
+  color: #171717;
+  background: #eeeeeb;
+  border: 1px solid #cfcfca;
+}
+
+.dangerButton:hover {
+  background: #e2e2df;
+}
+
+.cafeCard,
+.cafeHero,
+.bookingControls label,
+.selectionSummary,
+.confirmationPanel,
+.bookingCard,
+.authCard,
+.authDemo,
+.cafeManageCard,
+.cafeForm,
+.bookingsTableWrap,
+.loadingSlots,
+.emptyState {
+  background: rgba(250, 250, 248, 0.9);
+  border-color: #d5d5d0;
+  box-shadow: 0 14px 42px rgba(0, 0, 0, 0.055);
+  backdrop-filter: blur(12px);
+}
+
+.cafeCard,
+.cafeManageCard,
+.bookingCard {
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.045);
+}
+
+.cafeCard:hover,
+.cafeManageCard:hover,
+.bookingCard:hover {
+  border-color: #9c9c96;
+  box-shadow: 0 18px 46px rgba(0, 0, 0, 0.08);
+}
+
+.cafeCard.selected {
+  border-color: #111;
+  box-shadow: inset 0 0 0 1px #111, 0 18px 46px rgba(0, 0, 0, 0.08);
+}
+
+.cafeCard img,
+.cafeHero img {
+  filter: grayscale(1) contrast(1.04);
+}
+
+.metricRow span,
+.heroStats span,
+.statusPill,
+.generatorBadge {
+  color: #2f2f2d !important;
+  background: #e8e8e4 !important;
+  border: 1px solid #d4d4cf;
+  border-radius: 999px;
+}
+
+.slotButton {
+  color: #161616;
+  background: rgba(250, 250, 248, 0.92);
+  border-color: #d3d3ce;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.04);
+}
+
+.slotButton:hover {
+  border-color: #111;
+  transform: translateY(-1px);
+}
+
+.slotButton.selected {
+  color: #f7f7f5;
+  background: #111;
+  border-color: #111;
+}
+
+.slotButton.selected span {
+  color: #d6d6d2;
+}
+
+.stickyBookingBar {
+  background: rgba(17, 17, 17, 0.95);
+  border-color: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(14px);
+}
+
+.stickyBookingBar strong,
+.userName {
+  color: #f7f7f5;
+}
+
+.authSwitch button {
+  color: #171717;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.authDemo {
+  background: rgba(245, 245, 242, 0.82);
+}
+
+.bookingsTable th {
+  background: #eeeeeb;
+  border-color: #d4d4cf;
+}
+
+.bookingsTable td {
+  border-color: #e2e2de;
+}
+
+.bookingsTable tbody tr:hover {
+  background: rgba(0, 0, 0, 0.035);
+}
+
+.statusPill.pending {
+  color: #1f1f1d !important;
+  background: #f1f1ee !important;
+}
+
+.statusPill.confirmed,
+.statusPill.checked_in {
+  color: #0f0f0e !important;
+  background: #d8d8d3 !important;
+}
+
+.statusPill.cancelled,
+.statusPill.completed,
+.statusPill.rejected {
+  color: #555550 !important;
+  background: #ededeb !important;
+}
+
+.mutedText {
+  color: #777772;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.skeletonCard {
+  background: linear-gradient(90deg, rgba(250, 250, 248, 0.72), rgba(224, 224, 220, 0.9), rgba(250, 250, 248, 0.72));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ambientScene {
+    display: none;
+  }
+
+  .ghostButton,
+  .primaryButton,
+  .dangerButton,
+  .addButton,
+  .navTabs button,
+  .slotButton {
+    transition: none;
+  }
+
+  .ghostButton:hover,
+  .primaryButton:hover,
+  .dangerButton:hover,
+  .addButton:hover,
+  .navTabs button:hover,
+  .slotButton:hover {
+    transform: none;
+  }
+}

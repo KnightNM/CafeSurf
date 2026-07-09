@@ -5,6 +5,7 @@ import {
   updateCafeApi,
   deleteCafeApi,
   fetchCafeBookings,
+  updateBookingStatusApi,
 } from './api';
 import type { Cafe, CafeBooking, CreateCafeRequest } from './types';
 
@@ -143,6 +144,18 @@ export default function CafeOwnerDashboard({ token, userRole }: CafeOwnerDashboa
       setCafeBookings([]);
     } finally {
       setBookingsLoading(false);
+    }
+  }
+
+  async function updateBookingStatus(bookingId: string, status: 'confirmed' | 'rejected') {
+    if (!selectedCafe) return;
+    setError(null);
+    try {
+      await updateBookingStatusApi(token, bookingId, status);
+      setNotice(status === 'confirmed' ? 'Booking confirmed.' : 'Booking rejected.');
+      setCafeBookings(await fetchCafeBookings(token, selectedCafe.id));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not update booking');
     }
   }
 
@@ -357,6 +370,7 @@ export default function CafeOwnerDashboard({ token, userRole }: CafeOwnerDashboa
                     <th>Time</th>
                     <th>Total</th>
                     <th>Status</th>
+                    <th>Action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -371,6 +385,20 @@ export default function CafeOwnerDashboard({ token, userRole }: CafeOwnerDashboa
                         <span className={`statusPill ${b.status}`}>
                           {b.status.replace('_', ' ')}
                         </span>
+                      </td>
+                      <td>
+                        {b.status === 'pending' ? (
+                          <div className="bookingActions">
+                            <button className="ghostButton" onClick={() => void updateBookingStatus(b.id, 'confirmed')}>
+                              Confirm
+                            </button>
+                            <button className="dangerButton" onClick={() => void updateBookingStatus(b.id, 'rejected')}>
+                              Reject
+                            </button>
+                          </div>
+                        ) : (
+                          <span className="mutedText">No action</span>
+                        )}
                       </td>
                     </tr>
                   ))}

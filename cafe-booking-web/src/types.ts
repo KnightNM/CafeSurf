@@ -1,4 +1,4 @@
-export type BookingStatus = 'reserved' | 'checked_in' | 'completed' | 'cancelled';
+export type BookingStatus = 'pending' | 'confirmed' | 'checked_in' | 'completed' | 'cancelled' | 'rejected';
 
 export type UserRole = 'admin' | 'cafe_owner' | 'customer';
 

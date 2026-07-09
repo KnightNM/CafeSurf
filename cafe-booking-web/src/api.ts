@@ -111,6 +111,19 @@ export async function checkInBooking(id: string, token?: string): Promise<Bookin
   return data.booking;
 }
 
+export async function updateBookingStatusApi(
+  token: string,
+  id: string,
+  status: 'confirmed' | 'rejected'
+): Promise<Booking> {
+  const data = await request<{ booking: Booking }>(
+    `/api/bookings/${id}/status`,
+    { method: 'PATCH', body: JSON.stringify({ status }) },
+    token
+  );
+  return data.booking;
+}
+
 // ── Auth API ───────────────────────────────────────
 
 export async function register(payload: RegisterRequest): Promise<AuthResponse> {

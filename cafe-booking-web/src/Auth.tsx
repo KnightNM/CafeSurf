@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { login, register } from './api';
 import type { LoginRequest, RegisterRequest, AuthResponse } from './types';
+import AmbientScene from './AmbientScene';
 
 interface AuthProps {
   onAuthSuccess: (response: AuthResponse) => void;
@@ -45,11 +46,12 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
 
   return (
     <div className="authContainer">
+      <AmbientScene compact />
       <div className="authCard">
         <div className="authHeader">
-          <span className="authBrand">SB</span>
+          <span className="authBrand">CS</span>
           <div>
-            <h1>SpaceBook</h1>
+            <h1>CafeSurf</h1>
             <p>{isLogin ? 'Sign in to your account' : 'Create your account'}</p>
           </div>
         </div>
@@ -114,13 +116,13 @@ export default function Auth({ onAuthSuccess }: AuthProps) {
           <p>Demo accounts:</p>
           <div className="demoAccounts">
             <div>
-              <strong>Admin:</strong> admin@spacebook.lk / admin123
+              <strong>Admin:</strong> admin@cafesurf.lk / admin123
             </div>
             <div>
-              <strong>Owner:</strong> owner1@spacebook.lk / owner123
+              <strong>Owner:</strong> owner1@cafesurf.lk / owner123
             </div>
             <div>
-              <strong>Customer:</strong> customer@spacebook.lk / customer123
+              <strong>Customer:</strong> customer@cafesurf.lk / customer123
             </div>
           </div>
         </div>
