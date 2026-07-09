@@ -12,12 +12,32 @@ async function init(): Promise<void> {
     // ── Drop tables in reverse-dependency order ─────────
     await db.none('DROP TABLE IF EXISTS bookings CASCADE');
     await db.none('DROP TABLE IF EXISTS cafes CASCADE');
+    await db.none('DROP TABLE IF EXISTS users CASCADE');
     console.log('   ✓ Dropped existing tables');
+
+    await db.none('CREATE EXTENSION IF NOT EXISTS pgcrypto');
+    console.log('   ✓ Ensured pgcrypto extension');
+
+    // ── Create users table ──────────────────────────────
+    await db.none(`
+      CREATE TABLE users (
+        id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        email           VARCHAR(255)  NOT NULL UNIQUE,
+        password_hash   VARCHAR(255)  NOT NULL,
+        name            VARCHAR(255)  NOT NULL,
+        role            VARCHAR(20)   NOT NULL DEFAULT 'customer'
+                        CHECK (role IN ('admin', 'cafe_owner', 'customer')),
+        created_at      TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
+        updated_at      TIMESTAMPTZ   NOT NULL DEFAULT NOW()
+      )
+    `);
+    console.log('   ✓ Created "users" table');
 
     // ── Create cafes table ──────────────────────────────
     await db.none(`
       CREATE TABLE cafes (
         id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        owner_id        UUID         REFERENCES users(id) ON DELETE SET NULL,
         name            VARCHAR(255)  NOT NULL,
         area            VARCHAR(100)  NOT NULL,
         latitude        DECIMAL(10,7) NOT NULL,
@@ -26,7 +46,8 @@ async function init(): Promise<void> {
         total_slots     INTEGER       NOT NULL DEFAULT 10,
         has_generator   BOOLEAN       NOT NULL DEFAULT false,
         wifi_speed_mbps INTEGER       NOT NULL DEFAULT 50,
-        created_at      TIMESTAMPTZ   NOT NULL DEFAULT NOW()
+        created_at      TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
+        updated_at      TIMESTAMPTZ   NOT NULL DEFAULT NOW()
       )
     `);
     console.log('   ✓ Created "cafes" table');
@@ -42,7 +63,7 @@ async function init(): Promise<void> {
         end_time    INTEGER      NOT NULL CHECK (end_time >= 1  AND end_time <= 24),
         total_price INTEGER      NOT NULL,
         status      VARCHAR(20)  NOT NULL DEFAULT 'reserved'
-                    CHECK (status IN ('reserved', 'checked_in', 'completed')),
+                    CHECK (status IN ('reserved', 'checked_in', 'completed', 'cancelled')),
         created_at  TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
 
         CONSTRAINT valid_time_range CHECK (start_time < end_time)

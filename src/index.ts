@@ -5,6 +5,8 @@ import express from 'express';
 import cors from 'cors';
 import cafeRoutes from './routes/cafeRoutes';
 import bookingRoutes from './routes/bookingRoutes';
+import authRoutes from './routes/authRoutes';
+import cafeManagementRoutes from './routes/cafeManagementRoutes';
 import { getLocalIPv4 } from './utils/network';
 
 const app = express();
@@ -14,7 +16,9 @@ app.use(cors({ origin: '*' }));       // Wide-open for local iOS simulator / dev
 app.use(express.json());
 
 // ── Routes ───────────────────────────────────────────
+app.use('/api/auth', authRoutes);
 app.use('/api/cafes', cafeRoutes);
+app.use('/api/cafes/management', cafeManagementRoutes);
 app.use('/api/bookings', bookingRoutes);
 
 // ── Health check ─────────────────────────────────────

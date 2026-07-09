@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { db, pgp } from '../config/database';
-import { Booking, Cafe, CreateBookingRequest } from '../models/types';
+import { Booking, BookingWithCafe, Cafe, CreateBookingRequest } from '../models/types';
 
 /**
  * POST /api/bookings
@@ -171,5 +171,91 @@ export async function checkinBooking(req: Request, res: Response): Promise<void>
   } catch (error) {
     console.error('Error checking in:', error);
     res.status(500).json({ error: 'Failed to check in' });
+  }
+}
+
+/**
+ * GET /api/bookings?user_id=xxx
+ *
+ * Returns all bookings for a given user, enriched with cafe name and area.
+ * Ordered by date descending, then start_time descending.
+ */
+export async function getBookingsByUser(req: Request, res: Response): Promise<void> {
+  try {
+    const { user_id } = req.query;
+
+    if (!user_id || typeof user_id !== 'string') {
+      res.status(400).json({ error: 'Missing required query parameter: user_id' });
+      return;
+    }
+
+    const bookings = await db.any<BookingWithCafe>(
+      `SELECT b.*, c.name AS cafe_name, c.area AS cafe_area
+       FROM bookings b
+       JOIN cafes c ON c.id = b.cafe_id
+       WHERE b.user_id = $1
+       ORDER BY b.date DESC, b.start_time DESC`,
+      [user_id]
+    );
+
+    res.json({ bookings });
+  } catch (error) {
+    console.error('Error fetching user bookings:', error);
+    res.status(500).json({ error: 'Failed to fetch bookings' });
+  }
+}
+
+/**
+ * DELETE /api/bookings/:id?user_id=xxx
+ *
+ * Cancels a booking by setting its status to 'cancelled'.
+ * Only 'reserved' bookings can be cancelled.
+ * Verifies ownership via user_id query parameter.
+ */
+export async function cancelBooking(req: Request, res: Response): Promise<void> {
+  try {
+    const { id } = req.params;
+    const { user_id } = req.query;
+
+    if (!user_id || typeof user_id !== 'string') {
+      res.status(400).json({ error: 'Missing required query parameter: user_id' });
+      return;
+    }
+
+    const booking = await db.oneOrNone<Booking>(
+      'SELECT * FROM bookings WHERE id = $1',
+      [id]
+    );
+
+    if (!booking) {
+      res.status(404).json({ error: 'Booking not found' });
+      return;
+    }
+
+    if (booking.user_id !== user_id) {
+      res.status(403).json({ error: 'You can only cancel your own bookings' });
+      return;
+    }
+
+    if (booking.status !== 'reserved') {
+      res.status(400).json({
+        error: `Cannot cancel a booking with status '${booking.status}'`,
+        details: 'Only reserved bookings can be cancelled.',
+      });
+      return;
+    }
+
+    const updated = await db.one<BookingWithCafe>(
+      `UPDATE bookings SET status = 'cancelled' WHERE id = $1
+       RETURNING *,
+         (SELECT name FROM cafes WHERE id = cafe_id) AS cafe_name,
+         (SELECT area FROM cafes WHERE id = cafe_id) AS cafe_area`,
+      [id]
+    );
+
+    res.json({ booking: updated });
+  } catch (error) {
+    console.error('Error cancelling booking:', error);
+    res.status(500).json({ error: 'Failed to cancel booking' });
   }
 }
