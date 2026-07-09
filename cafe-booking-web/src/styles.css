@@ -1,0 +1,1077 @@
+:root {
+  color: #19201c;
+  background: #f5f2eb;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background:
+    linear-gradient(180deg, rgba(245, 242, 235, 0.96), rgba(245, 242, 235, 0.98)),
+    url("https://images.unsplash.com/photo-1525610553991-2bede1a236e2?auto=format&fit=crop&w=1800&q=80") center/cover fixed;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+.appShell {
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+.sidebar {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  height: 100vh;
+  padding: 28px 22px;
+  color: #f8f5ee;
+  background: #16231f;
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.brandBlock {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brandMark {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  color: #16231f;
+  font-weight: 900;
+  background: #e9b44c;
+  border-radius: 8px;
+}
+
+.brandBlock h1,
+.brandBlock p,
+.sectionHeader h2,
+.sectionHeader p,
+.cafeCard h3,
+.cafeCard p,
+.cafeHero h2,
+.cafeHero p,
+.bookingCard h4,
+.bookingCard p {
+  margin: 0;
+}
+
+.brandBlock h1 {
+  font-size: 1.55rem;
+  line-height: 1.1;
+  letter-spacing: 0;
+}
+
+.brandBlock p,
+.eyebrow {
+  color: #7d8c83;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.sidebar .brandBlock p {
+  color: #a9b4ad;
+  margin-top: 4px;
+  text-transform: none;
+  font-weight: 500;
+}
+
+.navTabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.navTabs button,
+.ghostButton,
+.primaryButton,
+.dangerButton,
+.toast button {
+  min-height: 42px;
+  border: 0;
+  border-radius: 8px;
+  font-weight: 800;
+}
+
+.navTabs button {
+  color: #dce5df;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.navTabs button.active {
+  color: #16231f;
+  background: #e9b44c;
+}
+
+.filterPanel {
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+}
+
+.userPanel {
+  display: grid;
+  gap: 12px;
+  padding: 18px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+}
+
+.userInfo {
+  display: grid;
+  gap: 4px;
+}
+
+.userName {
+  color: #f8f5ee;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.userRole {
+  color: #a9b4ad;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.filterPanel label {
+  display: grid;
+  gap: 8px;
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.filterPanel select,
+.bookingControls input {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 12px;
+  color: #19201c;
+  background: #fffaf0;
+  border: 1px solid #d9d0bf;
+  border-radius: 8px;
+}
+
+.switchLine {
+  display: flex !important;
+  grid-template-columns: none !important;
+  align-items: center;
+  gap: 10px !important;
+}
+
+.switchLine input {
+  width: 18px;
+  height: 18px;
+  accent-color: #e9b44c;
+}
+
+.mainColumn {
+  min-width: 0;
+  padding: 28px;
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  max-width: 1100px;
+  margin: 0 auto 18px;
+  padding: 12px 14px;
+  color: #193020;
+  background: #d7ead7;
+  border: 1px solid #b8d8b9;
+  border-radius: 8px;
+}
+
+.toast.error {
+  color: #5b231f;
+  background: #f7d8d3;
+  border-color: #e7b2aa;
+}
+
+.toast button {
+  min-height: 34px;
+  padding: 0 12px;
+  color: inherit;
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.workspaceGrid {
+  display: grid;
+  grid-template-columns: minmax(320px, 460px) minmax(0, 1fr);
+  gap: 22px;
+  max-width: 1260px;
+  margin: 0 auto;
+}
+
+.listPane,
+.detailPane,
+.bookingsPane {
+  min-width: 0;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.sectionHeader h2 {
+  color: #14201b;
+  font-size: clamp(1.6rem, 2.5vw, 2.35rem);
+  letter-spacing: 0;
+}
+
+.ghostButton {
+  padding: 0 14px;
+  color: #16231f;
+  background: #fffaf0;
+  border: 1px solid #d9d0bf;
+}
+
+.cafeList,
+.bookingList {
+  display: grid;
+  gap: 14px;
+}
+
+.cafeCard {
+  display: grid;
+  grid-template-columns: 128px minmax(0, 1fr);
+  gap: 14px;
+  width: 100%;
+  padding: 10px;
+  text-align: left;
+  color: inherit;
+  background: rgba(255, 250, 240, 0.92);
+  border: 1px solid #ded5c4;
+  border-radius: 8px;
+  box-shadow: 0 18px 45px rgba(30, 38, 31, 0.08);
+}
+
+.cafeCard.selected {
+  border-color: #c58a1d;
+  box-shadow: 0 0 0 3px rgba(233, 180, 76, 0.26), 0 18px 45px rgba(30, 38, 31, 0.12);
+}
+
+.cafeCard img {
+  width: 100%;
+  height: 112px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.cafeCardBody {
+  display: grid;
+  align-content: space-between;
+  min-width: 0;
+  gap: 18px;
+}
+
+.cafeCard h3 {
+  color: #14201b;
+  font-size: 1.05rem;
+}
+
+.cafeCard p {
+  margin-top: 4px;
+  color: #617068;
+}
+
+.metricRow,
+.heroStats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.metricRow span,
+.heroStats span,
+.statusPill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 9px;
+  color: #34443b;
+  font-size: 0.78rem;
+  font-weight: 800;
+  background: #efe6d7;
+  border-radius: 999px;
+}
+
+.detailContent {
+  display: grid;
+  gap: 18px;
+}
+
+.cafeHero {
+  display: grid;
+  grid-template-columns: minmax(220px, 360px) minmax(0, 1fr);
+  gap: 22px;
+  align-items: end;
+  padding: 16px;
+  background: rgba(255, 250, 240, 0.9);
+  border: 1px solid #ded5c4;
+  border-radius: 8px;
+}
+
+.cafeHero img {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.cafeHero h2 {
+  margin: 6px 0 14px;
+  color: #14201b;
+  font-size: clamp(1.8rem, 3.4vw, 3rem);
+  letter-spacing: 0;
+}
+
+.bookingControls {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 14px;
+  align-items: end;
+}
+
+.bookingControls label,
+.selectionSummary {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  font-size: 0.9rem;
+  font-weight: 800;
+  background: rgba(255, 250, 240, 0.92);
+  border: 1px solid #ded5c4;
+  border-radius: 8px;
+}
+
+.selectionSummary {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  min-height: 76px;
+}
+
+.selectionSummary span {
+  overflow-wrap: anywhere;
+  color: #5d6c63;
+}
+
+.selectionSummary strong {
+  color: #14201b;
+  font-size: 1.3rem;
+}
+
+.slotGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+  gap: 10px;
+  min-height: 220px;
+}
+
+.slotButton {
+  display: grid;
+  gap: 6px;
+  min-height: 82px;
+  padding: 12px;
+  text-align: left;
+  color: #18231e;
+  background: rgba(255, 250, 240, 0.94);
+  border: 1px solid #ded5c4;
+  border-radius: 8px;
+}
+
+.slotButton span {
+  color: #637268;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.slotButton.selected {
+  color: #111914;
+  background: #e9b44c;
+  border-color: #bf8420;
+}
+
+.slotButton.selected span {
+  color: #2e2817;
+}
+
+.slotButton:disabled {
+  color: #8f938f;
+  background: rgba(233, 229, 219, 0.75);
+}
+
+.loadingSlots,
+.emptyState {
+  display: grid;
+  place-items: center;
+  min-height: 180px;
+  padding: 28px;
+  text-align: center;
+  color: #617068;
+  background: rgba(255, 250, 240, 0.72);
+  border: 1px solid #ded5c4;
+  border-radius: 8px;
+}
+
+.emptyState h2,
+.emptyState h3,
+.emptyState p {
+  margin: 0;
+}
+
+.emptyState.tall {
+  min-height: 520px;
+}
+
+.emptyState.compact {
+  min-height: 100px;
+}
+
+.stickyBookingBar {
+  position: sticky;
+  bottom: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px;
+  background: rgba(22, 35, 31, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  box-shadow: 0 20px 55px rgba(12, 16, 14, 0.2);
+}
+
+.stickyBookingBar span {
+  display: block;
+  color: #b9c5be;
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+.stickyBookingBar strong {
+  display: block;
+  color: #fffaf0;
+  font-size: 1.35rem;
+}
+
+.primaryButton {
+  min-width: 150px;
+  padding: 0 18px;
+  color: #151b16;
+  background: #e9b44c;
+}
+
+.primaryButton:disabled {
+  opacity: 0.55;
+}
+
+.bookingsPane {
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.confirmationPanel,
+.bookingCard {
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+  background: rgba(255, 250, 240, 0.92);
+  border: 1px solid #ded5c4;
+  border-radius: 8px;
+}
+
+.confirmationPanel {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  margin-bottom: 22px;
+}
+
+.confirmationPanel h3 {
+  margin: 4px 0;
+  overflow-wrap: anywhere;
+  color: #14201b;
+}
+
+.confirmationPanel p {
+  margin: 0;
+  color: #617068;
+}
+
+.bookingGroup {
+  margin-top: 24px;
+}
+
+.bookingGroup h3 {
+  margin: 0 0 12px;
+  color: #14201b;
+  font-size: 1.15rem;
+}
+
+.bookingCard {
+  grid-template-columns: minmax(180px, 1fr) minmax(300px, 1.4fr) auto;
+  align-items: center;
+}
+
+.bookingCard h4 {
+  color: #14201b;
+  font-size: 1rem;
+}
+
+.bookingCard p {
+  margin-top: 4px;
+  color: #617068;
+}
+
+.bookingCard dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+}
+
+.bookingCard dt {
+  color: #79857d;
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.bookingCard dd {
+  margin: 4px 0 0;
+  color: #223028;
+  font-weight: 800;
+}
+
+.bookingActions {
+  display: grid;
+  justify-items: end;
+  gap: 8px;
+}
+
+.statusPill.reserved {
+  color: #4d3507;
+  background: #f5d891;
+}
+
+.statusPill.checked_in {
+  color: #143d2a;
+  background: #bfe6cd;
+}
+
+.statusPill.cancelled,
+.statusPill.completed {
+  color: #4e5550;
+  background: #d9ded9;
+}
+
+.dangerButton {
+  min-height: 36px;
+  padding: 0 12px;
+  color: #6c211c;
+  background: #f2d5cf;
+}
+
+.skeletonCard {
+  height: 134px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, rgba(255, 250, 240, 0.72), rgba(231, 223, 209, 0.9), rgba(255, 250, 240, 0.72));
+  background-size: 240% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
+
+@media (max-width: 980px) {
+  .appShell {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    position: static;
+    height: auto;
+  }
+
+  .workspaceGrid,
+  .cafeHero,
+  .bookingControls,
+  .bookingCard {
+    grid-template-columns: 1fr;
+  }
+
+  .bookingCard dl {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .bookingActions {
+    justify-items: start;
+  }
+}
+
+@media (max-width: 620px) {
+  .mainColumn,
+  .sidebar {
+    padding: 18px;
+  }
+
+  .cafeCard {
+    grid-template-columns: 1fr;
+  }
+
+  .cafeCard img {
+    height: 180px;
+  }
+
+  .selectionSummary,
+  .confirmationPanel,
+  .stickyBookingBar {
+    grid-template-columns: 1fr;
+  }
+
+  .stickyBookingBar {
+    align-items: stretch;
+  }
+
+  .primaryButton {
+    width: 100%;
+  }
+
+  .bookingCard dl {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Auth Styles ─────────────────────────────────── */
+
+.authContainer {
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  padding: 28px;
+  background:
+    linear-gradient(180deg, rgba(245, 242, 235, 0.96), rgba(245, 242, 235, 0.98)),
+    url("https://images.unsplash.com/photo-1525610553991-2bede1a236e2?auto=format&fit=crop&w=1800&q=80") center/cover fixed;
+}
+
+.authCard {
+  width: 100%;
+  max-width: 420px;
+  display: grid;
+  gap: 22px;
+  padding: 32px;
+  background: rgba(255, 250, 240, 0.95);
+  border: 1px solid #ded5c4;
+  border-radius: 12px;
+  box-shadow: 0 20px 55px rgba(30, 38, 31, 0.12);
+}
+
+.authHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.authBrand {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  color: #16231f;
+  font-weight: 900;
+  font-size: 1.2rem;
+  background: #e9b44c;
+  border-radius: 8px;
+}
+
+.authHeader h1 {
+  margin: 0;
+  color: #14201b;
+  font-size: 1.55rem;
+}
+
+.authHeader p {
+  margin: 4px 0 0;
+  color: #617068;
+  font-size: 0.9rem;
+}
+
+.authError {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  color: #5b231f;
+  background: #f7d8d3;
+  border: 1px solid #e7b2aa;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.authError button {
+  background: none;
+  border: none;
+  color: inherit;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0;
+  min-height: auto;
+}
+
+.authForm {
+  display: grid;
+  gap: 16px;
+}
+
+.authForm label {
+  display: grid;
+  gap: 8px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #34443b;
+}
+
+.authForm input {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 12px;
+  color: #19201c;
+  background: #fffaf0;
+  border: 1px solid #d9d0bf;
+  border-radius: 8px;
+}
+
+.authForm button {
+  margin-top: 8px;
+}
+
+.authSwitch {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: #617068;
+}
+
+.authSwitch button {
+  background: none;
+  border: none;
+  color: #e9b44c;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  min-height: auto;
+}
+
+.authDemo {
+  padding: 16px;
+  background: rgba(233, 180, 76, 0.1);
+  border: 1px solid rgba(233, 180, 76, 0.3);
+  border-radius: 8px;
+}
+
+.authDemo p {
+  margin: 0 0 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #617068;
+  text-transform: uppercase;
+}
+
+.demoAccounts {
+  display: grid;
+  gap: 6px;
+  font-size: 0.82rem;
+  color: #34443b;
+}
+
+.demoAccounts div {
+  padding: 4px 0;
+}
+
+.demoAccounts strong {
+  font-weight: 700;
+}
+
+/* ── Dashboard / Cafe Management Styles ────────── */
+
+.navTabs.threeCols {
+  grid-template-columns: 1fr 1fr 1fr;
+}
+
+.sidebarSpacer {
+  flex: 1;
+}
+
+.headerActions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.addButton {
+  min-height: 42px;
+  padding: 0 18px;
+  color: #151b16;
+  font-weight: 800;
+  background: #e9b44c;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.addButton:hover {
+  background: #d4a23e;
+}
+
+.dashboardPane {
+  max-width: 1060px;
+  margin: 0 auto;
+}
+
+.manageCafeList {
+  display: grid;
+  gap: 14px;
+}
+
+.cafeManageCard {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+  padding: 20px;
+  background: rgba(255, 250, 240, 0.92);
+  border: 1px solid #ded5c4;
+  border-radius: 8px;
+  box-shadow: 0 10px 35px rgba(30, 38, 31, 0.06);
+  transition: box-shadow 0.15s;
+}
+
+.cafeManageCard:hover {
+  box-shadow: 0 14px 45px rgba(30, 38, 31, 0.1);
+}
+
+.cafeManageInfo h3 {
+  margin: 0;
+  color: #14201b;
+  font-size: 1.1rem;
+}
+
+.cafeManageInfo p {
+  margin: 4px 0 12px;
+  color: #617068;
+}
+
+.generatorBadge {
+  color: #1a5a3a !important;
+  background: #bfe6cd !important;
+}
+
+.cafeManageActions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* ── Cafe Form ─────────────────────────────────── */
+
+.cafeFormSection {
+  max-width: 780px;
+  margin: 0 auto;
+}
+
+.cafeForm {
+  display: grid;
+  gap: 22px;
+  padding: 24px;
+  background: rgba(255, 250, 240, 0.92);
+  border: 1px solid #ded5c4;
+  border-radius: 8px;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.formGrid label {
+  display: grid;
+  gap: 8px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #34443b;
+}
+
+.formGrid input[type="text"],
+.formGrid input[type="number"] {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 12px;
+  color: #19201c;
+  background: #fffaf0;
+  border: 1px solid #d9d0bf;
+  border-radius: 8px;
+  font: inherit;
+}
+
+.formGrid input:focus {
+  outline: none;
+  border-color: #e9b44c;
+  box-shadow: 0 0 0 3px rgba(233, 180, 76, 0.18);
+}
+
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+/* ── Bookings Table ────────────────────────────── */
+
+.cafeBookingsSection {
+  max-width: 1060px;
+  margin: 0 auto;
+}
+
+.bookingsTableWrap {
+  overflow-x: auto;
+  border: 1px solid #ded5c4;
+  border-radius: 8px;
+  background: rgba(255, 250, 240, 0.92);
+}
+
+.bookingsTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.bookingsTable th {
+  padding: 14px 16px;
+  text-align: left;
+  color: #79857d;
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid #ded5c4;
+  background: rgba(239, 230, 215, 0.5);
+}
+
+.bookingsTable td {
+  padding: 14px 16px;
+  color: #223028;
+  font-weight: 600;
+  border-bottom: 1px solid rgba(222, 213, 196, 0.5);
+}
+
+.bookingsTable tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.bookingsTable tbody tr:hover {
+  background: rgba(233, 180, 76, 0.06);
+}
+
+.bookingsTable .statusPill {
+  font-size: 0.72rem;
+}
+
+/* ── Responsive — Dashboard ────────────────────── */
+
+@media (max-width: 980px) {
+  .cafeManageCard {
+    grid-template-columns: 1fr;
+  }
+
+  .cafeManageActions {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .navTabs.threeCols {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+}
+
+@media (max-width: 620px) {
+  .headerActions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .cafeManageActions {
+    flex-direction: column;
+  }
+
+  .formActions {
+    flex-direction: column;
+  }
+
+  .formActions button {
+    width: 100%;
+  }
+
+  .bookingsTable {
+    font-size: 0.8rem;
+  }
+
+  .bookingsTable th,
+  .bookingsTable td {
+    padding: 10px 10px;
+  }
+}
+
