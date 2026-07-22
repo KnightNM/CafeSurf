@@ -6,6 +6,78 @@
   text-rendering: optimizeLegibility;
 }
 
+/* ── Owner applications ─────────────────────────── */
+
+.applicationPane {
+  display: grid;
+  gap: 20px;
+}
+
+.applicationList {
+  display: grid;
+  gap: 16px;
+}
+
+.applicationCard {
+  display: grid;
+  gap: 10px;
+  padding: 22px;
+  background: rgba(250, 250, 248, 0.96);
+  border: 1px solid #d8d8d3;
+  border-radius: 12px;
+}
+
+.applicationCard p {
+  margin: 0;
+}
+
+.applicationStatusRow,
+.applicationActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.applicationStatusRow h3 {
+  margin: 0;
+}
+
+.applicationStatusRow .status {
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.applicationStatusRow .pending { background: #fff0c2; }
+.applicationStatusRow .approved { background: #d8f2df; }
+.applicationStatusRow .rejected { background: #f7d8d3; }
+
+.applicationForm textarea {
+  width: 100%;
+  padding: 12px;
+  resize: vertical;
+  color: #19201c;
+  background: #fff;
+  border: 1px solid #d4d4cf;
+  border-radius: 8px;
+  font: inherit;
+}
+
+.applicationForm .fullWidth {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 720px) {
+  .applicationStatusRow,
+  .applicationActions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
+
 * {
   box-sizing: border-box;
 }
@@ -1397,5 +1469,379 @@ body {
   .navTabs button:hover,
   .slotButton:hover {
     transform: none;
+  }
+}
+
+/* ── CafeSurf Angular Dashboard Revamp ─────────── */
+
+body {
+  background:
+    linear-gradient(90deg, rgba(16, 16, 16, 0.035) 1px, transparent 1px) 0 0 / 72px 72px,
+    linear-gradient(180deg, rgba(16, 16, 16, 0.028) 1px, transparent 1px) 0 0 / 72px 72px,
+    radial-gradient(circle at 82% 16%, rgba(0, 0, 0, 0.07), transparent 24rem),
+    linear-gradient(180deg, #f7f7f4 0%, #ededeb 100%);
+}
+
+.mainColumn {
+  padding: 32px clamp(22px, 3vw, 46px);
+}
+
+.sidebar {
+  padding: 30px 22px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.08), transparent 28%),
+    #0f0f0f;
+}
+
+.brandBlock {
+  align-items: flex-start;
+}
+
+.brandMark,
+.authBrand {
+  border-radius: 3px;
+  clip-path: polygon(0 0, calc(100% - 9px) 0, 100% 9px, 100% 100%, 9px 100%, 0 calc(100% - 9px));
+}
+
+.navTabs {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: 14px;
+  border-top: 1px solid #2b2b2b;
+}
+
+.navTabs.threeCols {
+  grid-template-columns: none;
+}
+
+.navTabs button,
+.sidebar .ghostButton {
+  justify-content: flex-start;
+  min-height: 40px;
+  padding: 0 12px;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  border-left: 2px solid transparent;
+  border-radius: 0;
+}
+
+.navTabs button.active {
+  color: #f7f7f5;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.12), transparent);
+  border-color: #f7f7f5;
+}
+
+.userPanel,
+.filterPanel {
+  background: transparent;
+  border-color: #2a2a2a;
+  border-radius: 2px;
+  clip-path: polygon(0 0, calc(100% - 13px) 0, 100% 13px, 100% 100%, 0 100%);
+}
+
+.sectionHeader {
+  position: relative;
+  align-items: flex-end;
+  padding-bottom: 16px;
+  margin-bottom: 20px;
+}
+
+.sectionHeader::after {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 1px;
+  content: "";
+  background: linear-gradient(90deg, #111, rgba(17, 17, 17, 0.18), transparent);
+}
+
+.sectionHeader h2 {
+  font-size: clamp(1.9rem, 3.5vw, 3.7rem);
+  line-height: 0.95;
+}
+
+.workspaceGrid {
+  grid-template-columns: minmax(300px, 410px) minmax(0, 1fr);
+  gap: clamp(24px, 3vw, 44px);
+}
+
+.cafeList,
+.bookingList,
+.manageCafeList {
+  gap: 0;
+}
+
+.cafeCard,
+.bookingCard,
+.cafeManageCard {
+  position: relative;
+  border-width: 0 0 1px;
+  border-color: #c8c8c2;
+  border-radius: 0;
+  background: rgba(250, 250, 248, 0.62);
+  box-shadow: none;
+  backdrop-filter: blur(10px);
+}
+
+.cafeCard {
+  grid-template-columns: 104px minmax(0, 1fr);
+  padding: 16px 0 16px 18px;
+}
+
+.cafeCard::before,
+.bookingCard::before,
+.cafeManageCard::before {
+  position: absolute;
+  top: 16px;
+  bottom: 16px;
+  left: 0;
+  width: 2px;
+  content: "";
+  background: #111;
+  opacity: 0;
+  transform: scaleY(0.45);
+  transition: opacity 0.16s ease, transform 0.16s ease;
+}
+
+.cafeCard:hover,
+.bookingCard:hover,
+.cafeManageCard:hover,
+.cafeCard.selected {
+  border-color: #111;
+  box-shadow: none;
+}
+
+.cafeCard:hover::before,
+.bookingCard:hover::before,
+.cafeManageCard:hover::before,
+.cafeCard.selected::before {
+  opacity: 1;
+  transform: scaleY(1);
+}
+
+.cafeCard.selected {
+  background: rgba(255, 255, 253, 0.88);
+}
+
+.cafeCard img {
+  height: 92px;
+  border-radius: 2px;
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%);
+}
+
+.cafeHero {
+  position: relative;
+  grid-template-columns: minmax(200px, 330px) minmax(0, 1fr);
+  padding: 0;
+  overflow: hidden;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.cafeHero::after {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 18%;
+  height: 1px;
+  content: "";
+  background: #bdbdb8;
+}
+
+.cafeHero img {
+  border-radius: 0;
+  clip-path: polygon(0 0, 100% 0, 88% 100%, 0 100%);
+}
+
+.cafeHero > div {
+  align-self: stretch;
+  display: grid;
+  align-content: end;
+  padding: 24px 0 28px;
+}
+
+.bookingControls {
+  grid-template-columns: 190px minmax(0, 1fr);
+  gap: 0;
+  border-top: 1px solid #c9c9c4;
+  border-bottom: 1px solid #c9c9c4;
+}
+
+.bookingControls label,
+.selectionSummary {
+  min-height: 76px;
+  padding: 14px 18px;
+  background: rgba(250, 250, 248, 0.62);
+  border: 0;
+  border-right: 1px solid #c9c9c4;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.selectionSummary {
+  border-right: 0;
+}
+
+.slotGrid {
+  grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+  gap: 1px;
+  min-height: 180px;
+  background: #cfcfca;
+  border: 1px solid #cfcfca;
+}
+
+.slotButton {
+  min-height: 76px;
+  padding: 12px 12px 10px;
+  background: rgba(250, 250, 248, 0.94);
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.slotButton strong {
+  position: relative;
+  padding-bottom: 8px;
+}
+
+.slotButton strong::after {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 28px;
+  height: 1px;
+  content: "";
+  background: #111;
+}
+
+.slotButton.selected {
+  background:
+    linear-gradient(135deg, transparent 0 78%, rgba(255, 255, 255, 0.18) 78%),
+    #111;
+}
+
+.emptyState,
+.loadingSlots {
+  position: relative;
+  overflow: hidden;
+  background: rgba(250, 250, 248, 0.48);
+  border: 1px solid #d0d0cb;
+  border-radius: 0;
+  box-shadow: none;
+  clip-path: polygon(0 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 0 100%);
+}
+
+.emptyState::before,
+.loadingSlots::before {
+  position: absolute;
+  inset: 18px;
+  content: "";
+  border-top: 1px solid rgba(17, 17, 17, 0.12);
+  border-left: 1px solid rgba(17, 17, 17, 0.12);
+  pointer-events: none;
+}
+
+.stickyBookingBar {
+  border-radius: 0;
+  clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 0 100%);
+}
+
+.confirmationPanel,
+.authCard,
+.cafeForm,
+.bookingsTableWrap {
+  border-radius: 0;
+  clip-path: polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 0 100%);
+}
+
+.bookingCard,
+.cafeManageCard {
+  padding: 18px 0 18px 18px;
+}
+
+.bookingsTableWrap {
+  border-color: #c7c7c1;
+  box-shadow: none;
+}
+
+.bookingsTable th,
+.bookingsTable td {
+  border-color: #d7d7d2;
+}
+
+.authContainer {
+  align-items: center;
+  justify-items: center;
+}
+
+.authCard {
+  max-width: 440px;
+  background: rgba(250, 250, 248, 0.74);
+}
+
+.authForm input,
+.filterPanel select,
+.bookingControls input,
+.formGrid input[type="text"],
+.formGrid input[type="number"] {
+  border-radius: 0;
+}
+
+.primaryButton,
+.addButton,
+.ghostButton,
+.dangerButton,
+.toast button {
+  border-radius: 0;
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%);
+}
+
+@media (max-width: 980px) {
+  .navTabs,
+  .navTabs.threeCols {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .navTabs button {
+    min-width: 126px;
+  }
+
+  .cafeHero img {
+    clip-path: polygon(0 0, 100% 0, 100% 88%, calc(100% - 18px) 100%, 0 100%);
+  }
+
+  .bookingControls {
+    grid-template-columns: 1fr;
+  }
+
+  .bookingControls label,
+  .selectionSummary {
+    border-right: 0;
+    border-bottom: 1px solid #c9c9c4;
+  }
+}
+
+@media (max-width: 620px) {
+  .mainColumn {
+    padding: 22px 18px;
+  }
+
+  .cafeCard {
+    padding-left: 0;
+  }
+
+  .cafeCard img {
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 18px), calc(100% - 18px) 100%, 0 100%);
+  }
+
+  .sectionHeader {
+    align-items: flex-start;
   }
 }
