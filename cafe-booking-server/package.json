@@ -1,0 +1,31 @@
+{
+  "name": "cafe-booking-server",
+  "version": "1.0.0",
+  "description": "Local development server for on-demand hourly cafe-coworking space booking in Sri Lanka",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "nodemon",
+    "build": "tsc",
+    "test": "vitest run",
+    "start": "node dist/index.js",
+    "db:migrate": "ts-node src/db/migrate.ts",
+    "auth:reset-demo-data": "ts-node src/db/resetDemoData.ts",
+    "auth:bootstrap-admin": "ts-node src/db/bootstrapAdmin.ts"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.110.8",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.1",
+    "pg-promise": "^11.10.2"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/node": "^22.10.0",
+    "nodemon": "^3.1.7",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.2",
+    "vitest": "^4.1.10"
+  }
+}
