@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import type { Session } from '@supabase/supabase-js';
 import {
   cancelBooking,
   checkInBooking,
@@ -6,10 +7,15 @@ import {
   fetchAvailability,
   fetchCafes,
   fetchMyBookings,
+  getCurrentUser,
 } from './api';
-import type { AvailabilitySlot, Booking, BookingWithCafe, Cafe, AuthResponse, User } from './types';
+import type { AvailabilitySlot, Booking, BookingWithCafe, Cafe, User } from './types';
 import Auth from './Auth';
 import CafeOwnerDashboard from './CafeOwnerDashboard';
+import AmbientScene from './AmbientScene';
+import OwnerApplicationView from './OwnerApplicationView';
+import AdminOwnerApplications from './AdminOwnerApplications';
+import { supabase } from './supabase';
 
 const areaFilters = ['All', 'Colombo 03', 'Colombo 07', 'Nawala', 'Rajagiriya', 'Kandy'];
 
@@ -33,7 +39,7 @@ function hourLabel(hour: number) {
 }
 
 function isUpcomingBooking(booking: BookingWithCafe) {
-  const active = booking.status === 'reserved' || booking.status === 'checked_in';
+  const active = booking.status === 'pending' || booking.status === 'confirmed' || booking.status === 'checked_in';
   return booking.date >= todayString() && active;
 }
 
@@ -45,6 +51,10 @@ function imageForCafe(cafe: Cafe) {
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
+  const [authReady, setAuthReady] = useState(false);
+  const [passwordRecovery, setPasswordRecovery] = useState(
+    new URLSearchParams(window.location.search).get('auth') === 'recovery'
+  );
   const [cafes, setCafes] = useState<Cafe[]>([]);
   const [selectedCafe, setSelectedCafe] = useState<Cafe | null>(null);
   const [selectedArea, setSelectedArea] = useState('All');
@@ -55,14 +65,20 @@ export default function App() {
   const [selectedHours, setSelectedHours] = useState<number[]>([]);
   const [bookings, setBookings] = useState<BookingWithCafe[]>([]);
   const [latestBooking, setLatestBooking] = useState<Booking | null>(null);
-  const [view, setView] = useState<'explore' | 'bookings' | 'mycafes'>('explore');
+  const [view, setView] = useState<
+    'explore' | 'bookings' | 'mycafes' | 'owner-application' | 'applications'
+  >('explore');
   const [loadingCafes, setLoadingCafes] = useState(true);
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [bookingNow, setBookingNow] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const isOwnerOrAdmin = user?.role === 'cafe_owner' || user?.role === 'admin';
+  const isCustomer = user?.role === 'customer';
+  const isOwner = user?.role === 'cafe_owner';
+  const isAdmin = user?.role === 'admin';
+  const canBookCafes = isCustomer || isAdmin;
+  const canManageCafes = isOwner || isAdmin;
 
   const selectedRange = useMemo(() => {
     if (!selectedHours.length) return null;
@@ -77,50 +93,82 @@ export default function App() {
   const upcomingBookings = bookings.filter(isUpcomingBooking);
   const pastBookings = bookings.filter((booking) => !isUpcomingBooking(booking));
 
-  function handleAuthSuccess(response: AuthResponse) {
-    setUser(response.user);
-    setToken(response.token);
-    localStorage.setItem('token', response.token);
-    localStorage.setItem('user', JSON.stringify(response.user));
-  }
-
-  function handleLogout() {
+  async function handleLogout() {
+    await supabase.auth.signOut();
     setUser(null);
     setToken(null);
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
     setView('explore');
   }
 
   useEffect(() => {
-    // Check for existing session
-    const storedToken = localStorage.getItem('token');
-    const storedUser = localStorage.getItem('user');
-    if (storedToken && storedUser) {
+    let active = true;
+
+    async function applySession(session: Session | null) {
+      if (!active) return;
+      if (!session) {
+        setToken(null);
+        setUser(null);
+        setAuthReady(true);
+        return;
+      }
+
+      setToken(session.access_token);
       try {
-        setToken(storedToken);
-        setUser(JSON.parse(storedUser));
-      } catch {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+        const profile = await getCurrentUser(session.access_token);
+        if (!active) return;
+        setUser(profile);
+        setView((current) => {
+          if (profile.role === 'cafe_owner') return 'mycafes';
+          return current;
+        });
+        setError(null);
+      } catch (caught) {
+        if (!active) return;
+        setUser(null);
+        setError(caught instanceof Error ? caught.message : 'Could not load your profile');
+      } finally {
+        if (active) setAuthReady(true);
       }
     }
+
+    void supabase.auth.getSession().then(({ data }) => applySession(data.session));
+    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setPasswordRecovery(true);
+        setAuthReady(true);
+      }
+      window.setTimeout(() => void applySession(session), 0);
+    });
+
+    return () => {
+      active = false;
+      listener.subscription.unsubscribe();
+    };
   }, []);
 
-  useEffect(() => {
-    void loadCafes();
-  }, [selectedArea, generatorOnly, fastWifiOnly]);
+  async function refreshProfile() {
+    if (!token) return;
+    const profile = await getCurrentUser(token);
+    setUser(profile);
+    if (profile.role === 'cafe_owner') setView('mycafes');
+  }
 
   useEffect(() => {
-    if (user) {
+    if (canBookCafes) {
+      void loadCafes();
+    }
+  }, [selectedArea, generatorOnly, fastWifiOnly, canBookCafes]);
+
+  useEffect(() => {
+    if (user && canBookCafes) {
       void loadBookings();
     }
-  }, [user]);
+  }, [user, canBookCafes]);
 
   useEffect(() => {
-    if (!selectedCafe) return;
+    if (!selectedCafe || !canBookCafes) return;
     void loadAvailabilityForCafe(selectedCafe.id, date);
-  }, [selectedCafe, date]);
+  }, [selectedCafe, date, canBookCafes]);
 
   async function loadCafes() {
     setLoadingCafes(true);
@@ -157,9 +205,9 @@ export default function App() {
   }
 
   async function loadBookings() {
-    if (!user) return;
+    if (!token) return;
     try {
-      setBookings(await fetchMyBookings(user.id, token ?? undefined));
+      setBookings(await fetchMyBookings(token));
     } catch {
       setBookings([]);
     }
@@ -184,23 +232,22 @@ export default function App() {
   }
 
   async function submitBooking() {
-    if (!selectedCafe || !selectedRange || !user) return;
+    if (!selectedCafe || !selectedRange || !token) return;
     setBookingNow(true);
     setError(null);
     setNotice(null);
     try {
       const booking = await createBooking(
         {
-          user_id: user.id,
           cafe_id: selectedCafe.id,
           date,
           start_time: selectedRange.start,
           end_time: selectedRange.end,
         },
-        token ?? undefined
+        token
       );
       setLatestBooking(booking);
-      setNotice(`Reserved ${selectedCafe.name} for ${hourLabel(booking.start_time)} to ${hourLabel(booking.end_time)}.`);
+      setNotice(`Requested ${selectedCafe.name} for ${hourLabel(booking.start_time)} to ${hourLabel(booking.end_time)}.`);
       setSelectedHours([]);
       await loadAvailabilityForCafe(selectedCafe.id, date);
       await loadBookings();
@@ -212,10 +259,10 @@ export default function App() {
   }
 
   async function cancelExistingBooking(id: string) {
-    if (!user) return;
+    if (!token) return;
     setError(null);
     try {
-      const updated = await cancelBooking(id, user.id, token ?? undefined);
+      const updated = await cancelBooking(id, token);
       setBookings((current) => current.map((booking) => (booking.id === id ? updated : booking)));
       setNotice('Booking cancelled.');
     } catch (err) {
@@ -224,10 +271,10 @@ export default function App() {
   }
 
   async function checkInLatestBooking() {
-    if (!latestBooking) return;
+    if (!latestBooking || !token) return;
     setError(null);
     try {
-      const updated = await checkInBooking(latestBooking.id, token ?? undefined);
+      const updated = await checkInBooking(latestBooking.id, token);
       setLatestBooking(updated);
       setNotice('Check-in confirmed.');
       await loadBookings();
@@ -236,37 +283,65 @@ export default function App() {
     }
   }
 
-  // Show Auth component if not logged in
+  if (!authReady) {
+    return <div className="authContainer"><div className="authCard">Loading your session…</div></div>;
+  }
+
+  if (passwordRecovery) {
+    return <Auth initialMode="reset" onRecoveryComplete={() => setPasswordRecovery(false)} />;
+  }
+
   if (!user) {
-    return <Auth onAuthSuccess={handleAuthSuccess} />;
+    return <Auth />;
   }
 
   return (
     <main className="appShell">
-      <aside className="sidebar" aria-label="SpaceBook navigation">
+      <AmbientScene />
+      <aside className="sidebar" aria-label="CafeSurf navigation">
         <div className="brandBlock">
-          <span className="brandMark">SB</span>
+          <span className="brandMark">CS</span>
           <div>
-            <h1>SpaceBook</h1>
+            <h1>CafeSurf</h1>
             <p>Cafe workspaces in Sri Lanka</p>
           </div>
         </div>
 
-        <div className={`navTabs ${isOwnerOrAdmin ? 'threeCols' : ''}`} role="tablist">
-          <button className={view === 'explore' ? 'active' : ''} onClick={() => setView('explore')}>
-            Explore
-          </button>
-          <button className={view === 'bookings' ? 'active' : ''} onClick={() => setView('bookings')}>
-            My bookings
-          </button>
-          {isOwnerOrAdmin && (
+        <div className="navTabs" role="tablist">
+          {canBookCafes && (
+            <button className={view === 'explore' ? 'active' : ''} onClick={() => setView('explore')}>
+              Explore
+            </button>
+          )}
+          {canBookCafes && (
+            <button className={view === 'bookings' ? 'active' : ''} onClick={() => setView('bookings')}>
+              My bookings
+            </button>
+          )}
+          {canManageCafes && (
             <button className={view === 'mycafes' ? 'active' : ''} onClick={() => setView('mycafes')}>
-              My cafes
+              {isAdmin ? 'All cafes' : 'My cafes'}
+            </button>
+          )}
+          {isCustomer && (
+            <button
+              className={view === 'owner-application' ? 'active' : ''}
+              onClick={() => setView('owner-application')}
+            >
+              Become an owner
+            </button>
+          )}
+          {isAdmin && (
+            <button
+              className={view === 'applications' ? 'active' : ''}
+              onClick={() => setView('applications')}
+            >
+              Owner applications
             </button>
           )}
         </div>
 
-        {view === 'explore' && (
+        {view === 'explore' && canBookCafes && (
           <section className="filterPanel" aria-label="Filters">
             <label>
               Area
@@ -304,7 +379,7 @@ export default function App() {
             <span className="userName">{user.name}</span>
             <span className="userRole">{user.role.replace('_', ' ')}</span>
           </div>
-          <button className="ghostButton" onClick={handleLogout}>
+          <button className="ghostButton" onClick={() => void handleLogout()}>
             Sign out
           </button>
         </div>
@@ -318,7 +393,7 @@ export default function App() {
           </div>
         )}
 
-        {view === 'explore' && (
+        {view === 'explore' && canBookCafes && (
           <div className="workspaceGrid">
             <section className="listPane" aria-label="Cafe list">
               <div className="sectionHeader">
@@ -385,7 +460,7 @@ export default function App() {
           </div>
         )}
 
-        {view === 'bookings' && (
+        {view === 'bookings' && canBookCafes && (
           <BookingsView
             upcoming={upcomingBookings}
             past={pastBookings}
@@ -397,8 +472,20 @@ export default function App() {
           />
         )}
 
-        {view === 'mycafes' && token && (
+        {view === 'mycafes' && token && canManageCafes && (
           <CafeOwnerDashboard token={token} userRole={user.role} />
+        )}
+
+        {view === 'owner-application' && token && isCustomer && (
+          <OwnerApplicationView
+            token={token}
+            currentRole={user.role}
+            onProfileChanged={() => void refreshProfile()}
+          />
+        )}
+
+        {view === 'applications' && token && isAdmin && (
+          <AdminOwnerApplications token={token} />
         )}
       </section>
     </main>
@@ -431,6 +518,7 @@ function CafeDetail(props: {
     onToggleHour,
     onBook,
   } = props;
+  const visibleSlots = slots.filter((slot) => slot.available > 0);
 
   return (
     <div className="detailContent">
@@ -460,21 +548,24 @@ function CafeDetail(props: {
 
       <div className="slotGrid" aria-label="Hourly availability">
         {loadingSlots && <div className="loadingSlots">Loading availability...</div>}
-        {!loadingSlots && slots.map((slot) => {
+        {!loadingSlots && visibleSlots.map((slot) => {
           const isSelected = selectedHours.includes(slot.hour);
-          const isUnavailable = slot.available <= 0;
           return (
             <button
               key={slot.hour}
               className={`slotButton ${isSelected ? 'selected' : ''}`}
-              disabled={isUnavailable}
               onClick={() => onToggleHour(slot.hour)}
             >
               <strong>{hourLabel(slot.hour)}</strong>
-              <span>{isUnavailable ? 'Full' : `${slot.available}/${slot.total} open`}</span>
+              <span>{slot.available}/{slot.total} open</span>
             </button>
           );
         })}
+        {!loadingSlots && visibleSlots.length === 0 && (
+          <div className="emptyState compact">
+            <p>No open slots for this date.</p>
+          </div>
+        )}
       </div>
 
       <div className="stickyBookingBar">
@@ -483,7 +574,7 @@ function CafeDetail(props: {
           <strong>LKR {totalPrice.toLocaleString()}</strong>
         </div>
         <button className="primaryButton" disabled={!selectedRange || bookingNow} onClick={onBook}>
-          {bookingNow ? 'Booking...' : 'Book workspace'}
+          {bookingNow ? 'Requesting...' : 'Request booking'}
         </button>
       </div>
     </div>
@@ -518,7 +609,7 @@ function BookingsView(props: {
             <h3>{latestBooking.id}</h3>
             <p>{latestBooking.date}, {hourLabel(latestBooking.start_time)} to {hourLabel(latestBooking.end_time)}</p>
           </div>
-          <button className="primaryButton" disabled={latestBooking.status !== 'reserved'} onClick={onCheckIn}>
+          <button className="primaryButton" disabled={latestBooking.status !== 'confirmed'} onClick={onCheckIn}>
             {latestBooking.status === 'checked_in' ? 'Checked in' : 'Check in'}
           </button>
         </div>
@@ -568,7 +659,7 @@ function BookingSection(props: {
               </dl>
               <div className="bookingActions">
                 <span className={`statusPill ${booking.status}`}>{booking.status.replace('_', ' ')}</span>
-                {onCancel && booking.status === 'reserved' && (
+                {onCancel && (booking.status === 'pending' || booking.status === 'confirmed') && (
                   <button className="dangerButton" onClick={() => onCancel(booking.id)}>Cancel</button>
                 )}
               </div>

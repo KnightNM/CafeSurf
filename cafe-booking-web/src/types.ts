@@ -1,4 +1,4 @@
-export type BookingStatus = 'reserved' | 'checked_in' | 'completed' | 'cancelled';
+export type BookingStatus = 'pending' | 'confirmed' | 'checked_in' | 'completed' | 'cancelled' | 'rejected';
 
 export type UserRole = 'admin' | 'cafe_owner' | 'customer';
 
@@ -26,23 +26,6 @@ export interface User {
   updated_at: string;
 }
 
-export interface RegisterRequest {
-  email: string;
-  password: string;
-  name: string;
-  role?: UserRole;
-}
-
-export interface LoginRequest {
-  email: string;
-  password: string;
-}
-
-export interface AuthResponse {
-  user: User;
-  token: string;
-}
-
 export interface AvailabilitySlot {
   hour: number;
   available: number;
@@ -67,7 +50,6 @@ export interface BookingWithCafe extends Booking {
 }
 
 export interface CreateBookingRequest {
-  user_id: string;
   cafe_id: string;
   date: string;
   start_time: number;
@@ -90,4 +72,32 @@ export type UpdateCafeRequest = Partial<CreateCafeRequest>;
 export interface CafeBooking extends Booking {
   user_name: string;
   user_email: string;
+}
+
+export type OwnerApplicationStatus = 'pending' | 'approved' | 'rejected';
+
+export interface OwnerApplication {
+  id: string;
+  user_id: string;
+  business_name: string;
+  contact_phone: string;
+  cafe_name: string;
+  location: string;
+  notes: string | null;
+  status: OwnerApplicationStatus;
+  reviewed_by: string | null;
+  review_note: string | null;
+  created_at: string;
+  updated_at: string;
+  reviewed_at: string | null;
+  applicant_name?: string;
+  applicant_email?: string;
+}
+
+export interface CreateOwnerApplicationRequest {
+  business_name: string;
+  contact_phone: string;
+  cafe_name: string;
+  location: string;
+  notes?: string;
 }

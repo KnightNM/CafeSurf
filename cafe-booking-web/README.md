@@ -1,6 +1,21 @@
-# SpaceBook Web
+# CafeSurf Web
 
 React/Vite web client for the existing cafe booking API.
+
+## Supabase Auth
+
+Copy `.env.example` to `.env` and set the project URL and publishable key from
+the Supabase Connect/API settings. The service-role key must never be placed in
+the web app.
+
+In Supabase Auth URL Configuration, set the development Site URL to
+`http://localhost:5173` and add these redirect URLs:
+
+- `http://localhost:5173`
+- `http://localhost:5173/?auth=recovery`
+
+For production, replace these with the deployed web origin. Enable email
+confirmation and configure Resend under Auth SMTP settings before launch.
 
 ## Run the web app
 
@@ -22,10 +37,11 @@ npm install
 npm run dev
 ```
 
-The server expects Postgres to be available at `postgres://postgres:postgres@localhost:5432/cafe_booking`, unless `DATABASE_URL` is set. After Postgres is running:
+The server uses `DATABASE_URL` for application data and Supabase Auth for identity.
+After configuring the server environment, apply migrations with:
 
 ```sh
-npm run db:reset
+npm run db:migrate
 ```
 
 ### Use Supabase for now
@@ -44,14 +60,12 @@ DATABASE_URL=postgresql://postgres:<password>@<host>:5432/postgres
 DATABASE_SSL=true
 ```
 
-Then initialize the Supabase database and start the API:
+Then apply the versioned, non-destructive migrations and start the API:
 
 ```sh
-npm run db:reset
+npm run db:migrate
 npm run dev
 ```
-
-To switch back to local Postgres later, replace `DATABASE_URL` with the local connection string and set `DATABASE_SSL=false`.
 
 To point the web app at a different backend:
 

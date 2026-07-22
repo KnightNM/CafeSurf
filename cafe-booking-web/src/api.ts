@@ -7,9 +7,9 @@ import type {
   CreateBookingRequest,
   CreateCafeRequest,
   UpdateCafeRequest,
-  RegisterRequest,
-  LoginRequest,
-  AuthResponse,
+  OwnerApplication,
+  OwnerApplicationStatus,
+  CreateOwnerApplicationRequest,
   User,
 } from './types';
 
@@ -75,7 +75,7 @@ export async function fetchAvailability(cafeId: string, date: string): Promise<A
 
 // ── Booking APIs ───────────────────────────────────
 
-export async function createBooking(payload: CreateBookingRequest, token?: string): Promise<Booking> {
+export async function createBooking(payload: CreateBookingRequest, token: string): Promise<Booking> {
   const data = await request<{ booking: Booking }>(
     '/api/bookings',
     { method: 'POST', body: JSON.stringify(payload) },
@@ -84,25 +84,25 @@ export async function createBooking(payload: CreateBookingRequest, token?: strin
   return data.booking;
 }
 
-export async function fetchMyBookings(userId: string, token?: string): Promise<BookingWithCafe[]> {
+export async function fetchMyBookings(token: string): Promise<BookingWithCafe[]> {
   const data = await request<{ bookings: BookingWithCafe[] }>(
-    `/api/bookings?user_id=${encodeURIComponent(userId)}`,
+    '/api/bookings',
     undefined,
     token
   );
   return data.bookings;
 }
 
-export async function cancelBooking(id: string, userId: string, token?: string): Promise<BookingWithCafe> {
+export async function cancelBooking(id: string, token: string): Promise<BookingWithCafe> {
   const data = await request<{ booking: BookingWithCafe }>(
-    `/api/bookings/${id}?user_id=${encodeURIComponent(userId)}`,
+    `/api/bookings/${id}`,
     { method: 'DELETE' },
     token
   );
   return data.booking;
 }
 
-export async function checkInBooking(id: string, token?: string): Promise<Booking> {
+export async function checkInBooking(id: string, token: string): Promise<Booking> {
   const data = await request<{ booking: Booking }>(
     `/api/bookings/${id}/checkin`,
     { method: 'POST' },
@@ -111,22 +111,17 @@ export async function checkInBooking(id: string, token?: string): Promise<Bookin
   return data.booking;
 }
 
-// ── Auth API ───────────────────────────────────────
-
-export async function register(payload: RegisterRequest): Promise<AuthResponse> {
-  const data = await request<{ user: User; token: string }>('/api/auth/register', {
-    method: 'POST',
-    body: JSON.stringify(payload),
-  });
-  return { user: data.user, token: data.token };
-}
-
-export async function login(payload: LoginRequest): Promise<AuthResponse> {
-  const data = await request<{ user: User; token: string }>('/api/auth/login', {
-    method: 'POST',
-    body: JSON.stringify(payload),
-  });
-  return { user: data.user, token: data.token };
+export async function updateBookingStatusApi(
+  token: string,
+  id: string,
+  status: 'confirmed' | 'rejected'
+): Promise<Booking> {
+  const data = await request<{ booking: Booking }>(
+    `/api/bookings/${id}/status`,
+    { method: 'PATCH', body: JSON.stringify({ status }) },
+    token
+  );
+  return data.booking;
 }
 
 export async function getCurrentUser(token: string): Promise<User> {
@@ -178,4 +173,56 @@ export async function fetchCafeBookings(token: string, cafeId: string): Promise<
     token
   );
   return data.bookings;
+}
+
+// ── Owner applications ─────────────────────────────
+
+export async function fetchMyOwnerApplication(token: string): Promise<OwnerApplication | null> {
+  const data = await request<{ application: OwnerApplication | null }>(
+    '/api/owner-applications/me',
+    undefined,
+    token
+  );
+  return data.application;
+}
+
+export async function createOwnerApplicationApi(
+  token: string,
+  payload: CreateOwnerApplicationRequest
+): Promise<OwnerApplication> {
+  const data = await request<{ application: OwnerApplication }>(
+    '/api/owner-applications',
+    { method: 'POST', body: JSON.stringify(payload) },
+    token
+  );
+  return data.application;
+}
+
+export async function fetchOwnerApplications(
+  token: string,
+  status: OwnerApplicationStatus
+): Promise<OwnerApplication[]> {
+  const data = await request<{ applications: OwnerApplication[] }>(
+    `/api/admin/owner-applications?status=${status}`,
+    undefined,
+    token
+  );
+  return data.applications;
+}
+
+export async function decideOwnerApplicationApi(
+  token: string,
+  id: string,
+  decision: 'approved' | 'rejected',
+  reviewNote?: string
+): Promise<OwnerApplication> {
+  const data = await request<{ application: OwnerApplication }>(
+    `/api/admin/owner-applications/${id}`,
+    {
+      method: 'PATCH',
+      body: JSON.stringify({ decision, review_note: reviewNote || undefined }),
+    },
+    token
+  );
+  return data.application;
 }
