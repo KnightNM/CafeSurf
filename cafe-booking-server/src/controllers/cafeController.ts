@@ -1,6 +1,14 @@
 import { Request, Response } from 'express';
 import { db } from '../config/database';
 import { Cafe, AvailabilitySlot } from '../models/types';
+import { getCafeCoverPublicUrl } from '../config/supabase';
+
+export function serializeCafe(cafe: Cafe): Cafe {
+  return {
+    ...cafe,
+    cover_image_url: getCafeCoverPublicUrl(cafe.cover_image_path),
+  };
+}
 
 /**
  * GET /api/cafes
@@ -46,10 +54,24 @@ export async function getCafes(req: Request, res: Response): Promise<void> {
       values
     );
 
-    res.json({ cafes });
+    res.json({ cafes: cafes.map(serializeCafe) });
   } catch (error) {
     console.error('Error fetching cafes:', error);
     res.status(500).json({ error: 'Failed to fetch cafes' });
+  }
+}
+
+export async function getCafe(req: Request, res: Response): Promise<void> {
+  try {
+    const cafe = await db.oneOrNone<Cafe>('SELECT * FROM cafes WHERE id = $1', [req.params.id]);
+    if (!cafe) {
+      res.status(404).json({ error: 'Cafe not found' });
+      return;
+    }
+    res.json({ cafe: serializeCafe(cafe) });
+  } catch (error) {
+    console.error('Error fetching cafe:', error);
+    res.status(500).json({ error: 'Failed to fetch cafe' });
   }
 }
 
@@ -89,10 +111,10 @@ export async function getCafeAvailability(req: Request, res: Response): Promise<
     // ── Count booked slots per hour ───────────────────
     // Uses generate_series to produce hours 0–23 and LEFT JOINs
     // against bookings that overlap each hour.
-    const rows = await db.any<{ hour: number; booked_count: string }>(
+    const rows = await db.any<{ hour: number; booked_seats: string }>(
       `SELECT
          s.hour,
-         COUNT(b.id)::int AS booked_count
+         COALESCE(SUM(b.team_size), 0)::int AS booked_seats
        FROM generate_series(0, 23) AS s(hour)
        LEFT JOIN bookings b
          ON  b.cafe_id = $1
@@ -107,7 +129,7 @@ export async function getCafeAvailability(req: Request, res: Response): Promise<
 
     const slots: AvailabilitySlot[] = rows.map((row) => ({
       hour: Number(row.hour),
-      available: cafe.total_slots - Number(row.booked_count),
+      available: Math.max(0, cafe.total_slots - Number(row.booked_seats)),
       total: cafe.total_slots,
     }));
 

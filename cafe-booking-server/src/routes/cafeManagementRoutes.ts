@@ -5,6 +5,9 @@ import {
   deleteCafe,
   getMyCafes,
   getCafeBookings,
+  createCafeCoverUploadUrl,
+  attachCafeCover,
+  deleteCafeCover,
 } from '../controllers/cafeManagementController';
 import { authenticate, authorize } from '../middleware/auth';
 
@@ -33,6 +36,27 @@ router.delete('/:id', authenticate, authorize('cafe_owner', 'admin'), deleteCafe
  * Get cafes owned by current user (cafe_owner, admin)
  */
 router.get('/my-cafes', authenticate, authorize('cafe_owner', 'admin'), getMyCafes);
+
+router.post(
+  '/:id/cover-image/upload-url',
+  authenticate,
+  authorize('cafe_owner', 'admin'),
+  createCafeCoverUploadUrl
+);
+
+router.put(
+  '/:id/cover-image',
+  authenticate,
+  authorize('cafe_owner', 'admin'),
+  attachCafeCover
+);
+
+router.delete(
+  '/:id/cover-image',
+  authenticate,
+  authorize('cafe_owner', 'admin'),
+  deleteCafeCover
+);
 
 /**
  * GET /api/cafes/management/:id/bookings

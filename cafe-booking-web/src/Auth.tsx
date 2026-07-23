@@ -1,15 +1,24 @@
-import { useState } from 'react';
-import AmbientScene from './AmbientScene';
+import { useEffect, useRef, useState } from 'react';
+import { Brand } from './components/Brand';
 import { supabase } from './supabase';
 
 export type AuthMode = 'login' | 'signup' | 'forgot' | 'reset' | 'confirmation';
 
 interface AuthProps {
   initialMode?: AuthMode;
+  modal?: boolean;
+  onClose?: () => void;
+  onAuthenticated?: () => void;
   onRecoveryComplete?: () => void;
 }
 
-export default function Auth({ initialMode = 'login', onRecoveryComplete }: AuthProps) {
+export default function Auth({
+  initialMode = 'login',
+  modal = false,
+  onClose,
+  onAuthenticated,
+  onRecoveryComplete,
+}: AuthProps) {
   const [mode, setMode] = useState<AuthMode>(initialMode);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -17,6 +26,33 @@ export default function Auth({ initialMode = 'login', onRecoveryComplete }: Auth
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const panelRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => setMode(initialMode), [initialMode]);
+
+  useEffect(() => {
+    if (!modal) return;
+    const panel = panelRef.current;
+    panel?.querySelector<HTMLElement>('input, button')?.focus();
+
+    function handleKey(event: KeyboardEvent) {
+      if (event.key === 'Escape') onClose?.();
+      if (event.key !== 'Tab' || !panel) return;
+      const focusable = [...panel.querySelectorAll<HTMLElement>('button:not([disabled]), input:not([disabled])')];
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+    document.addEventListener('keydown', handleKey);
+    return () => document.removeEventListener('keydown', handleKey);
+  }, [modal, onClose]);
 
   function switchMode(nextMode: AuthMode) {
     setMode(nextMode);
@@ -35,6 +71,7 @@ export default function Auth({ initialMode = 'login', onRecoveryComplete }: Auth
       if (mode === 'login') {
         const { error: loginError } = await supabase.auth.signInWithPassword({ email, password });
         if (loginError) throw loginError;
+        onAuthenticated?.();
       } else if (mode === 'signup') {
         if (name.trim().length < 2) throw new Error('Full name must be at least 2 characters');
         const { data, error: signupError } = await supabase.auth.signUp({
@@ -47,17 +84,17 @@ export default function Auth({ initialMode = 'login', onRecoveryComplete }: Auth
         });
         if (signupError) throw signupError;
         if (!data.session) setMode('confirmation');
+        else onAuthenticated?.();
       } else if (mode === 'forgot') {
         const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: `${window.location.origin}/?auth=recovery`,
+          redirectTo: `${window.location.origin}/auth/recovery`,
         });
         if (resetError) throw resetError;
-        setNotice('Password reset instructions have been sent if that account exists.');
+        setNotice('If that account exists, a secure reset link is on its way.');
       } else if (mode === 'reset') {
         const { error: updateError } = await supabase.auth.updateUser({ password });
         if (updateError) throw updateError;
         await supabase.auth.signOut();
-        window.history.replaceState({}, '', window.location.pathname);
         setNotice('Password updated. Sign in with your new password.');
         setMode('login');
         onRecoveryComplete?.();
@@ -70,103 +107,92 @@ export default function Auth({ initialMode = 'login', onRecoveryComplete }: Auth
   }
 
   const isPasswordForm = mode === 'login' || mode === 'signup' || mode === 'reset';
-
-  return (
-    <div className="authContainer">
-      <AmbientScene compact />
-      <div className="authCard">
-        <div className="authHeader">
-          <span className="authBrand">CS</span>
-          <div>
-            <h1>CafeSurf</h1>
-            <p>
-              {mode === 'login' && 'Sign in to your account'}
-              {mode === 'signup' && 'Create your customer account'}
-              {mode === 'forgot' && 'Request a password reset'}
-              {mode === 'reset' && 'Choose a new password'}
-              {mode === 'confirmation' && 'Verify your email address'}
-            </p>
-          </div>
-        </div>
-
-        {error && <div className="authError"><span>{error}</span></div>}
-        {notice && <div className="toast"><span>{notice}</span></div>}
-
-        {mode === 'confirmation' ? (
-          <div className="emptyState">
-            <h3>Check your inbox</h3>
-            <p>Open the confirmation link Supabase sent to {email}. Then return here to sign in.</p>
-            <button className="primaryButton" onClick={() => switchMode('login')}>Back to sign in</button>
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="authForm">
-            {mode === 'signup' && (
-              <label>
-                Full Name
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(event) => setName(event.target.value)}
-                  placeholder="Enter your name"
-                  minLength={2}
-                  required
-                />
-              </label>
-            )}
-
-            {mode !== 'reset' && (
-              <label>
-                Email
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                  placeholder="Enter your email"
-                  required
-                />
-              </label>
-            )}
-
-            {isPasswordForm && (
-              <label>
-                {mode === 'reset' ? 'New password' : 'Password'}
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                  placeholder={mode === 'reset' ? 'Enter a new password' : 'Enter your password'}
-                  required
-                  minLength={8}
-                />
-              </label>
-            )}
-
-            <button type="submit" className="primaryButton" disabled={loading}>
-              {loading ? 'Processing…' : (
-                mode === 'login' ? 'Sign In'
-                  : mode === 'signup' ? 'Create Account'
-                    : mode === 'forgot' ? 'Send Reset Link'
-                      : 'Update Password'
-              )}
-            </button>
-          </form>
-        )}
-
-        {mode !== 'confirmation' && mode !== 'reset' && (
-          <div className="authSwitch">
-            {mode === 'login' && (
-              <>
-                <button type="button" onClick={() => switchMode('forgot')}>Forgot password?</button>
-                <span>Don&apos;t have an account?</span>
-                <button type="button" onClick={() => switchMode('signup')}>Sign Up</button>
-              </>
-            )}
-            {(mode === 'signup' || mode === 'forgot') && (
-              <button type="button" onClick={() => switchMode('login')}>Back to sign in</button>
-            )}
-          </div>
-        )}
+  const content = (
+    <section
+      className="authPanel"
+      ref={panelRef}
+      role={modal ? 'dialog' : undefined}
+      aria-modal={modal || undefined}
+      aria-labelledby="auth-title"
+    >
+      {modal && <button className="modalClose" onClick={onClose} aria-label="Close sign in">×</button>}
+      <Brand />
+      <div className="authIntro">
+        <p className="kicker">TEAM WORKSPACES, ON YOUR TIME</p>
+        <h1 id="auth-title">
+          {mode === 'login' && 'Welcome back.'}
+          {mode === 'signup' && 'Build your next session.'}
+          {mode === 'forgot' && 'Reset your access.'}
+          {mode === 'reset' && 'Choose a new password.'}
+          {mode === 'confirmation' && 'Check your inbox.'}
+        </h1>
+        <p>
+          {mode === 'login' && 'Sign in to book spaces and keep your team plans together.'}
+          {mode === 'signup' && 'Create a customer account to reserve flexible workspace.'}
+          {mode === 'forgot' && 'We will send a secure password-reset link.'}
+          {mode === 'reset' && 'Use at least eight characters for your new password.'}
+          {mode === 'confirmation' && `Open the confirmation link sent to ${email}.`}
+        </p>
       </div>
-    </div>
+
+      {error && <div className="notice noticeError" role="alert">{error}</div>}
+      {notice && <div className="notice" role="status">{notice}</div>}
+
+      {mode === 'confirmation' ? (
+        <button className="pillButton darkButton" onClick={() => switchMode('login')}>
+          Back to sign in
+        </button>
+      ) : (
+        <form className="formStack" onSubmit={handleSubmit}>
+          {mode === 'signup' && (
+            <label>Full name
+              <input value={name} onChange={(event) => setName(event.target.value)} minLength={2} required />
+            </label>
+          )}
+          {mode !== 'reset' && (
+            <label>Email address
+              <input type="email" value={email} onChange={(event) => setEmail(event.target.value)} required />
+            </label>
+          )}
+          {isPasswordForm && (
+            <label>{mode === 'reset' ? 'New password' : 'Password'}
+              <input
+                type="password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                minLength={8}
+                required
+              />
+            </label>
+          )}
+          <button className="pillButton darkButton fullButton" disabled={loading}>
+            {loading ? 'Working…' : mode === 'login' ? 'Sign in'
+              : mode === 'signup' ? 'Create account'
+                : mode === 'forgot' ? 'Send reset link' : 'Update password'}
+          </button>
+        </form>
+      )}
+
+      {mode !== 'confirmation' && mode !== 'reset' && (
+        <div className="authSwitch">
+          {mode === 'login' ? (
+            <>
+              <button onClick={() => switchMode('forgot')}>Forgot password?</button>
+              <span>New to CafeSurf?</span>
+              <button onClick={() => switchMode('signup')}>Create an account</button>
+            </>
+          ) : (
+            <button onClick={() => switchMode('login')}>Back to sign in</button>
+          )}
+        </div>
+      )}
+    </section>
   );
+
+  if (modal) {
+    return <div className="authOverlay" onMouseDown={(event) => {
+      if (event.target === event.currentTarget) onClose?.();
+    }}>{content}</div>;
+  }
+  return <main className="authPage"><div className="authBackdrop" />{content}</main>;
 }

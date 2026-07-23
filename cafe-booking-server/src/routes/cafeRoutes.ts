@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getCafes, getCafeAvailability } from '../controllers/cafeController';
+import { getCafe, getCafes, getCafeAvailability } from '../controllers/cafeController';
 
 const router = Router();
 
@@ -8,5 +8,7 @@ router.get('/', getCafes);
 
 // GET /api/cafes/:id/availability?date=2026-05-30
 router.get('/:id/availability', getCafeAvailability);
+
+router.get('/:id', getCafe);
 
 export default router;

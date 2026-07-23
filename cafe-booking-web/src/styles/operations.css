@@ -1,0 +1,226 @@
+.operationsShell {
+  display: grid;
+  grid-template-columns: 250px minmax(0, 1fr);
+  min-height: 100vh;
+  background: var(--porcelain);
+}
+
+.operationsRail {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  height: 100vh;
+  padding: 28px 20px;
+  color: var(--porcelain);
+  background:
+    linear-gradient(rgba(245,241,231,.06) 1px, transparent 1px) 0 0 / 42px 42px,
+    var(--forest-deep);
+}
+
+.railLabel {
+  margin: 12px 0 -10px;
+  color: rgba(245,241,231,.5);
+  font-size: .66rem;
+  font-weight: 850;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.operationsRail nav {
+  display: grid;
+  gap: 5px;
+}
+
+.operationsRail nav a {
+  min-height: 44px;
+  padding: 12px;
+  color: rgba(245,241,231,.7);
+  border-radius: 12px;
+  font-weight: 700;
+}
+
+.operationsRail nav a:hover,
+.operationsRail nav a.active {
+  color: var(--forest-deep);
+  background: var(--matcha);
+}
+
+.railUser {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 10px;
+  align-items: center;
+  margin-top: auto;
+  padding-top: 18px;
+  border-top: 1px solid rgba(245,241,231,.16);
+}
+
+.railUser div { display: grid; min-width: 0; }
+.railUser strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.railUser small { color: rgba(245,241,231,.5); text-transform: capitalize; }
+.railUser button { width: 38px; height: 38px; color: var(--porcelain); background: transparent; border: 1px solid rgba(245,241,231,.2); border-radius: 50%; }
+
+.operationsMain {
+  min-width: 0;
+  padding: clamp(26px, 4vw, 58px);
+}
+
+.dashboardPane,
+.applicationPane,
+.cafeFormSection,
+.cafeBookingsSection {
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 22px;
+  margin-bottom: 28px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--line);
+}
+
+.sectionHeader h2 {
+  margin: 0;
+  color: var(--forest);
+  font-size: clamp(2.4rem, 5vw, 5.3rem);
+  line-height: .88;
+  letter-spacing: -.06em;
+}
+
+.ghostButton,
+.primaryButton,
+.dangerButton,
+.addButton {
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 999px;
+  font-weight: 780;
+}
+
+.ghostButton { color: var(--forest); background: transparent; border: 1px solid var(--line); }
+.primaryButton, .addButton { color: var(--porcelain); background: var(--forest); border: 1px solid var(--forest); }
+.dangerButton { color: var(--danger); background: transparent; border: 1px solid rgba(168,69,55,.32); }
+
+.manageCafeList,
+.applicationList,
+.bookingList {
+  display: grid;
+  gap: 12px;
+}
+
+.cafeManageCard,
+.applicationCard,
+.cafeForm,
+.bookingsTableWrap {
+  background: rgba(255,253,247,.78);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+}
+
+.cafeManageCard {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr) auto;
+  gap: 20px;
+  align-items: center;
+  padding: 10px 18px 10px 10px;
+}
+
+.cafeManageCard .workspaceCover { min-height: 120px; border-radius: 15px; }
+.cafeManageInfo h3 { margin: 0; color: var(--forest); font-size: 1.45rem; }
+.cafeManageInfo p { margin: 5px 0 14px; color: var(--muted); }
+.cafeManageActions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+
+.cafeForm {
+  display: grid;
+  gap: 24px;
+  padding: clamp(22px, 4vw, 40px);
+}
+
+.formGrid { grid-template-columns: 1fr 1fr; }
+.formGrid .fullWidth { grid-column: 1 / -1; }
+.formActions { justify-content: flex-end; }
+
+.cafeForm > label {
+  display: grid;
+  gap: 8px;
+  color: var(--forest-deep);
+  font-size: .84rem;
+  font-weight: 750;
+}
+
+.formGrid .filterToggle {
+  display: flex;
+  align-items: center;
+  align-self: end;
+  gap: 10px;
+  min-height: 48px;
+}
+
+.coverField {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
+  gap: 18px;
+  align-items: center;
+  padding: 16px;
+  background: rgba(168,184,117,.14);
+  border-radius: 18px;
+}
+
+.coverField .workspaceCover { min-height: 120px; }
+.coverFieldActions { display: grid; gap: 10px; }
+.coverFieldActions p { margin: 0; color: var(--muted); font-size: .82rem; }
+
+.bookingsTableWrap {
+  overflow-x: auto;
+}
+
+.bookingsTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.bookingsTable th,
+.bookingsTable td {
+  padding: 14px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+}
+
+.bookingsTable th {
+  color: var(--muted);
+  font-size: .68rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.bookingsTable tr:last-child td { border-bottom: 0; }
+
+.applicationPane { display: grid; gap: 20px; }
+.applicationCard { display: grid; gap: 12px; padding: 24px; }
+.applicationCard p { margin: 0; color: var(--muted); }
+.applicationStatusRow, .applicationActions { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.applicationStatusRow h3 { margin: 0; color: var(--forest); font-size: 1.35rem; }
+.status { padding: 7px 11px; color: #6a5318; background: #efe1ba; border-radius: 999px; font-size: .7rem; font-weight: 850; text-transform: uppercase; }
+.reviewComposer { display: grid; grid-template-columns: 1fr auto auto; gap: 8px; margin-top: 8px; }
+.reviewComposer input { min-width: 0; }
+
+.toast,
+.emptyState {
+  padding: 18px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+}
+
+.toast { display: flex; justify-content: space-between; gap: 16px; }
+.toast.error { color: var(--danger); border-color: rgba(168,69,55,.4); }
+.toast button { border: 0; background: transparent; }
+.emptyState { display: grid; min-height: 150px; place-items: center; text-align: center; color: var(--muted); }
+.emptyState h3, .emptyState p { margin: 0; }
+.headerActions { display: flex; align-items: center; gap: 8px; }

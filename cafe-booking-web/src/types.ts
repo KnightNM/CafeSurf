@@ -13,6 +13,8 @@ export interface Cafe {
   total_slots: number;
   has_generator: boolean;
   wifi_speed_mbps: number;
+  cover_image_path?: string | null;
+  cover_image_url: string | null;
   created_at?: string;
   updated_at?: string;
 }
@@ -40,6 +42,7 @@ export interface Booking {
   start_time: number;
   end_time: number;
   total_price: number;
+  team_size: number;
   status: BookingStatus;
   created_at?: string;
 }
@@ -54,6 +57,7 @@ export interface CreateBookingRequest {
   date: string;
   start_time: number;
   end_time: number;
+  team_size: number;
 }
 
 export interface CreateCafeRequest {
@@ -72,6 +76,18 @@ export type UpdateCafeRequest = Partial<CreateCafeRequest>;
 export interface CafeBooking extends Booking {
   user_name: string;
   user_email: string;
+}
+
+export interface BookingIntent {
+  cafeId: string;
+  date: string;
+  selectedHours: number[];
+  teamSize: number;
+}
+
+export interface CafeCoverUploadTicket {
+  path: string;
+  token: string;
 }
 
 export type OwnerApplicationStatus = 'pending' | 'approved' | 'rejected';

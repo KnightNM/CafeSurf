@@ -12,6 +12,7 @@ export default function AdminOwnerApplications({ token }: AdminOwnerApplications
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [reviewNotes, setReviewNotes] = useState<Record<string, string>>({});
 
   async function loadApplications() {
     setLoading(true);
@@ -30,16 +31,16 @@ export default function AdminOwnerApplications({ token }: AdminOwnerApplications
   }, [token, status]);
 
   async function decide(application: OwnerApplication, decision: 'approved' | 'rejected') {
-    const reviewNote = window.prompt(
-      decision === 'approved' ? 'Optional approval note' : 'Reason for rejection'
-    );
-    if (reviewNote === null) return;
-
     setError(null);
     setNotice(null);
     try {
-      await decideOwnerApplicationApi(token, application.id, decision, reviewNote);
+      await decideOwnerApplicationApi(token, application.id, decision, reviewNotes[application.id]);
       setNotice(`Application ${decision}.`);
+      setReviewNotes((current) => {
+        const next = { ...current };
+        delete next[application.id];
+        return next;
+      });
       await loadApplications();
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'Could not review application');
@@ -50,8 +51,8 @@ export default function AdminOwnerApplications({ token }: AdminOwnerApplications
     <section className="dashboardPane applicationPane">
       <div className="sectionHeader">
         <div>
-          <p className="eyebrow">Administration</p>
-          <h2>Owner applications</h2>
+          <p className="kicker">PARTNER OPERATIONS</p>
+          <h2>Owner applications.</h2>
         </div>
         <div className="headerActions">
           <select value={status} onChange={(event) => setStatus(event.target.value as OwnerApplicationStatus)}>
@@ -86,7 +87,17 @@ export default function AdminOwnerApplications({ token }: AdminOwnerApplications
             {application.notes && <p><strong>Notes:</strong> {application.notes}</p>}
             {application.review_note && <p><strong>Review note:</strong> {application.review_note}</p>}
             {application.status === 'pending' && (
-              <div className="applicationActions">
+              <div className="reviewComposer">
+                <input
+                  value={reviewNotes[application.id] ?? ''}
+                  onChange={(event) => setReviewNotes((current) => ({
+                    ...current,
+                    [application.id]: event.target.value,
+                  }))}
+                  maxLength={1000}
+                  placeholder="Optional review note"
+                  aria-label={`Review note for ${application.business_name}`}
+                />
                 <button className="primaryButton" onClick={() => void decide(application, 'approved')}>Approve</button>
                 <button className="dangerButton" onClick={() => void decide(application, 'rejected')}>Reject</button>
               </div>

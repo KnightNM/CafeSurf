@@ -8,10 +8,37 @@ if (!supabaseUrl || !supabasePublishableKey) {
   throw new Error('SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY are required.');
 }
 
-export const supabaseAuth = createClient(supabaseUrl, supabasePublishableKey, {
+const configuredSupabaseUrl = supabaseUrl;
+
+export const supabaseAuth = createClient(configuredSupabaseUrl, supabasePublishableKey, {
   auth: {
     autoRefreshToken: false,
     detectSessionInUrl: false,
     persistSession: false,
   },
 });
+
+let adminClient: ReturnType<typeof createClient> | null = null;
+
+export const CAFE_COVERS_BUCKET = 'cafe-covers';
+
+export function getSupabaseAdmin(): ReturnType<typeof createClient> {
+  if (adminClient) return adminClient;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!serviceRoleKey) {
+    throw new Error('SUPABASE_SERVICE_ROLE_KEY is required for cafe cover management.');
+  }
+  adminClient = createClient(configuredSupabaseUrl, serviceRoleKey, {
+    auth: {
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
+      persistSession: false,
+    },
+  });
+  return adminClient;
+}
+
+export function getCafeCoverPublicUrl(path: string | null): string | null {
+  if (!path) return null;
+  return supabaseAuth.storage.from(CAFE_COVERS_BUCKET).getPublicUrl(path).data.publicUrl;
+}

@@ -9,13 +9,34 @@ import { Booking, BookingWithCafe, Cafe, CreateBookingRequest } from '../models/
  * Uses a serializable transaction so concurrent requests cannot
  * both claim the last slot.
  *
- * Body: { cafe_id, date, start_time, end_time }
+ * Body: { cafe_id, date, start_time, end_time, team_size? }
  */
+export function normalizeTeamSize(value: unknown): number | null {
+  const normalized = value === undefined ? 1 : value;
+  return Number.isInteger(normalized) && Number(normalized) >= 1
+    ? Number(normalized)
+    : null;
+}
+
+export function calculateBookingTotal(
+  hourlyRate: number,
+  startTime: number,
+  endTime: number,
+  teamSize: number
+): number {
+  return (endTime - startTime) * hourlyRate * teamSize;
+}
+
+export function hasSeatCapacity(bookedSeats: number, requestedSeats: number, totalSeats: number): boolean {
+  return bookedSeats + requestedSeats <= totalSeats;
+}
+
 export async function createBooking(req: Request, res: Response): Promise<void> {
   try {
     const requesterId = req.userId;
     const requesterRole = req.userRole;
     const { cafe_id, date, start_time, end_time } = req.body as CreateBookingRequest;
+    const teamSize = normalizeTeamSize(req.body.team_size);
 
     if (!requesterId || !requesterRole) {
       res.status(401).json({ error: 'Not authenticated' });
@@ -33,6 +54,11 @@ export async function createBooking(req: Request, res: Response): Promise<void> 
         error: 'Missing required fields',
         details: 'Required: cafe_id, date, start_time, end_time',
       });
+      return;
+    }
+
+    if (teamSize === null) {
+      res.status(400).json({ error: 'Team size must be a positive whole number' });
       return;
     }
 
@@ -79,11 +105,18 @@ export async function createBooking(req: Request, res: Response): Promise<void> 
         throw { statusCode: 404, message: 'Cafe not found' };
       }
 
+      if (teamSize > cafe.total_slots) {
+        throw {
+          statusCode: 400,
+          message: `Team size cannot exceed this workspace's ${cafe.total_slots}-seat capacity`,
+        };
+      }
+
       // 2. Check availability for every requested hour
-      const rows = await t.any<{ hour: number; booked_count: number }>(
+      const rows = await t.any<{ hour: number; booked_seats: number }>(
         `SELECT
            s.hour,
-           COUNT(b.id)::int AS booked_count
+           COALESCE(SUM(b.team_size), 0)::int AS booked_seats
          FROM generate_series($1::int, $2::int - 1) AS s(hour)
          LEFT JOIN bookings b
            ON  b.cafe_id = $3
@@ -97,26 +130,31 @@ export async function createBooking(req: Request, res: Response): Promise<void> 
       );
 
       const overbooked = rows.filter(
-        (r) => Number(r.booked_count) >= cafe.total_slots
+        (r) => !hasSeatCapacity(Number(r.booked_seats), teamSize, cafe.total_slots)
       );
 
       if (overbooked.length > 0) {
         const hours = overbooked.map((r) => `${r.hour}:00`).join(', ');
         throw {
           statusCode: 409,
-          message: `Fully booked for the following hours: ${hours}`,
+          message: `Not enough seats for your team during: ${hours}`,
         };
       }
 
       // 3. Calculate price and insert
-      const duration = end_time - start_time;
-      const total_price = duration * cafe.hourly_rate;
+      const total_price = calculateBookingTotal(
+        cafe.hourly_rate,
+        start_time,
+        end_time,
+        teamSize
+      );
 
       const created = await t.one<Booking>(
-        `INSERT INTO bookings (user_id, cafe_id, date, start_time, end_time, total_price, status)
-         VALUES ($1, $2, $3, $4, $5, $6, 'pending')
+        `INSERT INTO bookings
+          (user_id, cafe_id, date, start_time, end_time, total_price, team_size, status)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, 'pending')
          RETURNING *`,
-        [requesterId, cafe_id, date, start_time, end_time, total_price]
+        [requesterId, cafe_id, date, start_time, end_time, total_price, teamSize]
       );
 
       return created;

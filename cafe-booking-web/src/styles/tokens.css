@@ -1,0 +1,28 @@
+:root {
+  --forest: #173d2a;
+  --forest-deep: #0f2c1d;
+  --forest-soft: #2f5b43;
+  --porcelain: #f5f1e7;
+  --paper: #fffdf7;
+  --matcha: #a8b875;
+  --matcha-light: #dce3bd;
+  --brass: #c99a52;
+  --brass-light: #e6c990;
+  --espresso: #241a16;
+  --muted: #716c62;
+  --line: rgba(36, 26, 22, 0.16);
+  --danger: #a84537;
+  --success: #2f704c;
+  --display: "Bricolage Grotesque Variable", "Arial Black", sans-serif;
+  --body: "DM Sans Variable", Inter, sans-serif;
+  --shadow-sm: 0 14px 34px rgba(36, 26, 22, 0.08);
+  --shadow-lg: 0 28px 80px rgba(20, 43, 29, 0.16);
+  --radius-sm: 12px;
+  --radius-md: 22px;
+  --radius-lg: 34px;
+  color: var(--espresso);
+  background: var(--porcelain);
+  font-family: var(--body);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
