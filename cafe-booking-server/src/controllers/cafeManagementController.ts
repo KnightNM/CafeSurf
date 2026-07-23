@@ -3,6 +3,7 @@ import { Request, Response } from 'express';
 import { db } from '../config/database';
 import {
   CAFE_COVERS_BUCKET,
+  CAFE_REVISION_COVERS_BUCKET,
   getSupabaseAdmin,
 } from '../config/supabase';
 import { Cafe, CreateCafeRequest, UpdateCafeRequest } from '../models/types';
@@ -46,6 +47,13 @@ export function validateCoverUploadRequest(body: CoverUploadRequest): {
   }
 
   return { fileName, contentType, sizeBytes, extension };
+}
+
+export function hasExactCafeDeletionConfirmation(
+  confirmation: unknown,
+  cafeName: string
+): boolean {
+  return typeof confirmation === 'string' && confirmation === cafeName;
 }
 
 async function requireManagedCafe(
@@ -310,6 +318,91 @@ export async function deleteCafe(req: Request, res: Response): Promise<void> {
   } catch (error) {
     console.error('Error deleting cafe:', error);
     res.status(500).json({ error: 'Failed to delete cafe' });
+  }
+}
+
+/**
+ * DELETE /api/cafes/management/:id/permanent
+ *
+ * Admin veto: permanently removes the café and every associated booking and
+ * revision. Database cascades are intentional and irreversible.
+ */
+export async function permanentlyDeleteCafe(req: Request, res: Response): Promise<void> {
+  try {
+    if (!req.userId || req.userRole !== 'admin') {
+      res.status(req.userId ? 403 : 401).json({
+        error: req.userId ? 'Only admins can permanently delete cafés' : 'Not authenticated',
+      });
+      return;
+    }
+
+    const cafe = await db.oneOrNone<Cafe>('SELECT * FROM cafes WHERE id = $1', [req.params.id]);
+    if (!cafe) {
+      res.status(404).json({ error: 'Cafe not found' });
+      return;
+    }
+
+    if (!hasExactCafeDeletionConfirmation(req.body?.confirmation, cafe.name)) {
+      res.status(400).json({
+        error: 'Permanent deletion confirmation did not match the café name exactly',
+      });
+      return;
+    }
+
+    const revisionCovers = await db.any<{ proposed_cover_image_path: string }>(
+      `SELECT proposed_cover_image_path
+       FROM cafe_revisions
+       WHERE cafe_id = $1 AND proposed_cover_image_path IS NOT NULL`,
+      [cafe.id]
+    );
+
+    const deleted = await db.tx(async (t) => {
+      const counts = await t.one<{ bookings: number; revisions: number }>(
+        `SELECT
+          (SELECT COUNT(*)::int FROM bookings WHERE cafe_id = $1) AS bookings,
+          (SELECT COUNT(*)::int FROM cafe_revisions WHERE cafe_id = $1) AS revisions`,
+        [cafe.id]
+      );
+      await t.none('DELETE FROM cafes WHERE id = $1', [cafe.id]);
+      return counts;
+    });
+
+    const admin = getSupabaseAdmin();
+    const storageWarnings: string[] = [];
+    const publicPaths = new Set<string>();
+    if (cafe.cover_image_path) publicPaths.add(cafe.cover_image_path);
+    const { data: publicObjects, error: publicListError } = await admin.storage
+      .from(CAFE_COVERS_BUCKET)
+      .list(cafe.id, { limit: 1000 });
+    if (publicListError) {
+      storageWarnings.push('Could not list every public cover object');
+    } else {
+      publicObjects.forEach((object) => publicPaths.add(`${cafe.id}/${object.name}`));
+    }
+    if (publicPaths.size) {
+      const { error } = await admin.storage.from(CAFE_COVERS_BUCKET).remove([...publicPaths]);
+      if (error) storageWarnings.push('Could not remove every public cover object');
+    }
+
+    const privatePaths = [...new Set(revisionCovers.map((row) => row.proposed_cover_image_path))];
+    if (privatePaths.length) {
+      const { error } = await admin.storage.from(CAFE_REVISION_COVERS_BUCKET).remove(privatePaths);
+      if (error) storageWarnings.push('Could not remove every private revision cover object');
+    }
+
+    if (storageWarnings.length) {
+      console.warn(`Permanent café deletion ${cafe.id} completed with storage warnings:`, storageWarnings);
+    }
+
+    res.json({
+      message: 'Café permanently deleted',
+      deleted: { cafe: 1, bookings: deleted.bookings, revisions: deleted.revisions },
+      storage_cleanup_complete: storageWarnings.length === 0,
+      storage_warnings: storageWarnings,
+    });
+  } catch (error) {
+    console.error('Error permanently deleting cafe:', error);
+    res.status(500).json({ error: 'Failed to permanently delete cafe' });
   }
 }
 

@@ -39,6 +39,8 @@ Bearer token.
 - Admin café edits publish immediately and create an audit revision.
 - Approved removal archives the café and cancels future active bookings without
   deleting booking history.
+- Administrators also have a guarded permanent-delete veto that removes the café,
+  bookings, revisions, and stored covers after two confirmations.
 - New cafés are linked to a Google Place ID. The display name remains editable,
   while the verified address and coordinates stay tied to Google.
 - CafeSurf weekly hours control public availability and booking validation.

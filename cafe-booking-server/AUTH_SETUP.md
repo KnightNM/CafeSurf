@@ -133,6 +133,17 @@ snapshot, increments the live version, and records the reviewer. Stale drafts
 return `409`. Archive approval unpublishes the café and cancels future active
 bookings with a reason while preserving every booking row.
 
+## Administrator permanent-delete veto
+
+The separate admin-only endpoint is:
+
+- `DELETE /api/cafes/management/:id/permanent`
+
+Its body must contain `{ "confirmation": "<exact café name>" }`; the web UI also
+shows a final irreversible-action warning. Migration `006` makes associated
+bookings and revisions cascade from the café deletion. Express then removes
+associated public and private cover objects. Normal removal should use Archive.
+
 ## Owner applications
 
 Customer endpoints:

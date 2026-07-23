@@ -8,6 +8,7 @@ import {
   createCafeCoverUploadUrl,
   attachCafeCover,
   deleteCafeCover,
+  permanentlyDeleteCafe,
 } from '../controllers/cafeManagementController';
 import { authenticate, authorize } from '../middleware/auth';
 
@@ -26,9 +27,9 @@ router.post('/', authenticate, authorize('admin'), createCafe);
 router.put('/:id', authenticate, authorize('admin'), updateCafe);
 
 /**
- * DELETE /api/cafes/management/:id
- * Delete a cafe (owner only, admin)
+ * Archive or permanently delete a café (admin only).
  */
+router.delete('/:id/permanent', authenticate, authorize('admin'), permanentlyDeleteCafe);
 router.delete('/:id', authenticate, authorize('admin'), deleteCafe);
 
 /**

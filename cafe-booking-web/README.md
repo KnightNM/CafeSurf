@@ -22,6 +22,8 @@ React/Vite browser client for the CafeSurf Express API and Supabase Auth.
 - Admin current-versus-proposed diff review and immediate direct publishing
 - Data-driven role-safe homepage objects with honest empty states
 - Focused section links and desktop cinematic scroll chapters
+- Short fully opaque sticky transitions that release into normal scrolling
+- Separate admin Archive and exact-name-confirmed permanent-delete controls
 - Self-hosted Bricolage Grotesque and DM Sans fonts
 - CSS/SVG motion with `prefers-reduced-motion` support; no Three.js runtime
 
