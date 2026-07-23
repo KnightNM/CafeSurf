@@ -7,6 +7,10 @@ import {
 } from '../config/supabase';
 import { Cafe, CreateCafeRequest, UpdateCafeRequest } from '../models/types';
 import { serializeCafe } from './cafeController';
+import {
+  getGooglePlaceDetails,
+  validatePlaceId,
+} from '../services/googlePlaces';
 
 const MAX_COVER_BYTES = 5 * 1024 * 1024;
 const COVER_EXTENSIONS: Record<string, string> = {
@@ -57,7 +61,11 @@ async function requireManagedCafe(
 }
 
 function sendManagedCafeError(res: Response, error: unknown, fallback: string): void {
-  const typed = error as { statusCode?: number; message?: string };
+  const typed = error as { statusCode?: number; message?: string; code?: string };
+  if (typed.code === '23505') {
+    res.status(409).json({ error: 'This Google Maps location is already linked to a CafeSurf workspace' });
+    return;
+  }
   if (typed.statusCode && typed.message) {
     res.status(typed.statusCode).json({ error: typed.message });
     return;
@@ -96,13 +104,33 @@ export async function createCafe(req: Request, res: Response): Promise<void> {
       total_slots,
       has_generator,
       wifi_speed_mbps,
+      google_place_id,
+      google_session_token,
     } = req.body as CreateCafeRequest;
 
+    const googlePlace = google_place_id
+      ? await getGooglePlaceDetails(
+        validatePlaceId(google_place_id),
+        google_session_token
+      )
+      : null;
+    const resolvedName = googlePlace?.display_name ?? name;
+    const resolvedArea = googlePlace?.formatted_address ?? area;
+    const resolvedLatitude = googlePlace?.latitude ?? latitude;
+    const resolvedLongitude = googlePlace?.longitude ?? longitude;
+
     // ── Input validation ─────────────────────────────
-    if (!name || !area || !latitude || !longitude || !hourly_rate || !total_slots) {
+    if (
+      !resolvedName ||
+      !resolvedArea ||
+      !Number.isFinite(resolvedLatitude) ||
+      !Number.isFinite(resolvedLongitude) ||
+      !hourly_rate ||
+      !total_slots
+    ) {
       res.status(400).json({
         error: 'Missing required fields',
-        details: 'Required: name, area, latitude, longitude, hourly_rate, total_slots',
+        details: 'Required: a Google Maps location or manual name/area/coordinates, hourly_rate, total_slots',
       });
       return;
     }
@@ -121,16 +149,28 @@ export async function createCafe(req: Request, res: Response): Promise<void> {
     const ownerId = userRole === 'cafe_owner' ? userId : null;
     
     const cafe = await db.one<Cafe>(
-      `INSERT INTO cafes (owner_id, name, area, latitude, longitude, hourly_rate, total_slots, has_generator, wifi_speed_mbps)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      `INSERT INTO cafes
+        (owner_id, name, area, latitude, longitude, hourly_rate, total_slots,
+         has_generator, wifi_speed_mbps, google_place_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
        RETURNING *`,
-      [ownerId, name, area, latitude, longitude, hourly_rate, total_slots, has_generator || false, wifi_speed_mbps || 50]
+      [
+        ownerId,
+        resolvedName,
+        resolvedArea,
+        resolvedLatitude,
+        resolvedLongitude,
+        hourly_rate,
+        total_slots,
+        has_generator || false,
+        wifi_speed_mbps || 50,
+        googlePlace?.place_id ?? null,
+      ]
     );
 
     res.status(201).json({ cafe: serializeCafe(cafe) });
   } catch (error) {
-    console.error('Error creating cafe:', error);
-    res.status(500).json({ error: 'Failed to create cafe' });
+    sendManagedCafeError(res, error, 'Failed to create cafe');
   }
 }
 
@@ -173,6 +213,17 @@ export async function updateCafe(req: Request, res: Response): Promise<void> {
     let paramIndex = 1;
 
     const body = req.body as UpdateCafeRequest;
+    if (body.google_place_id) {
+      const googlePlace = await getGooglePlaceDetails(
+        validatePlaceId(body.google_place_id),
+        body.google_session_token
+      );
+      body.name = googlePlace.display_name;
+      body.area = googlePlace.formatted_address;
+      body.latitude = googlePlace.latitude;
+      body.longitude = googlePlace.longitude;
+      body.google_place_id = googlePlace.place_id;
+    }
 
     if (body.name !== undefined) {
       updates.push(`name = $${paramIndex++}`);
@@ -214,6 +265,10 @@ export async function updateCafe(req: Request, res: Response): Promise<void> {
       updates.push(`wifi_speed_mbps = $${paramIndex++}`);
       values.push(body.wifi_speed_mbps);
     }
+    if (body.google_place_id !== undefined) {
+      updates.push(`google_place_id = $${paramIndex++}`);
+      values.push(body.google_place_id || null);
+    }
 
     if (updates.length === 0) {
       res.status(400).json({ error: 'No fields to update' });
@@ -230,8 +285,7 @@ export async function updateCafe(req: Request, res: Response): Promise<void> {
 
     res.json({ cafe: serializeCafe(cafe) });
   } catch (error) {
-    console.error('Error updating cafe:', error);
-    res.status(500).json({ error: 'Failed to update cafe' });
+    sendManagedCafeError(res, error, 'Failed to update cafe');
   }
 }
 

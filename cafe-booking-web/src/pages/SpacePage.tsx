@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { createBooking, fetchAvailability, fetchCafe } from '../api';
+import { createBooking, fetchAvailability, fetchCafe, fetchCafeGooglePlace } from '../api';
 import PublicHeader from '../components/PublicHeader';
 import WorkspaceCover from '../components/WorkspaceCover';
 import { hourLabel, largestContiguousBlock, todayString } from '../lib/format';
-import type { AvailabilitySlot, BookingIntent, Cafe, User } from '../types';
+import type { AvailabilitySlot, BookingIntent, Cafe, GooglePlaceDetails, User } from '../types';
 
 interface SpacePageProps {
   user: User | null;
@@ -30,6 +30,7 @@ export default function SpacePage({
   const [teamSize, setTeamSize] = useState(restored?.teamSize ?? 2);
   const [selectedHours, setSelectedHours] = useState<number[]>(restored?.selectedHours ?? []);
   const [slots, setSlots] = useState<AvailabilitySlot[]>([]);
+  const [googlePlace, setGooglePlace] = useState<GooglePlaceDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [booking, setBooking] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -57,6 +58,18 @@ export default function SpacePage({
       .catch((caught) => active && setError(caught instanceof Error ? caught.message : 'Could not load availability'));
     return () => { active = false; };
   }, [id, date]);
+
+  useEffect(() => {
+    if (!token || !cafe?.google_place_id) {
+      setGooglePlace(null);
+      return;
+    }
+    let active = true;
+    fetchCafeGooglePlace(token, cafe.id)
+      .then((result) => active && setGooglePlace(result))
+      .catch(() => active && setGooglePlace(null));
+    return () => { active = false; };
+  }, [cafe?.google_place_id, cafe?.id, token]);
 
   const selectedRange = useMemo(() => {
     if (!selectedHours.length) return null;
@@ -147,8 +160,44 @@ export default function SpacePage({
               <span>{cafe.has_generator ? 'Backup power' : 'Grid power'}</span>
             </div>
             <div className="rateBlock"><span>Per seat / hour</span><strong>LKR {cafe.hourly_rate.toLocaleString()}</strong></div>
+            {cafe.google_maps_url && (
+              <a className="googleMapsButton" href={cafe.google_maps_url} target="_blank" rel="noreferrer">
+                View on Google Maps ↗
+              </a>
+            )}
           </div>
         </section>
+
+        {cafe.google_place_id && (
+          <section className="googlePlacePanel">
+            <div>
+              <p className="kicker">LOCATION DETAILS</p>
+              <h2>{googlePlace?.display_name ?? cafe.name}</h2>
+              <p>{googlePlace?.formatted_address ?? cafe.area}</p>
+            </div>
+            {googlePlace ? (
+              <div className="googlePlaceFacts">
+                {googlePlace.business_status && <span>{googlePlace.business_status.split('_').join(' ').toLowerCase()}</span>}
+                {googlePlace.phone && <a href={`tel:${googlePlace.phone}`}>{googlePlace.phone}</a>}
+                {googlePlace.website && <a href={googlePlace.website} target="_blank" rel="noreferrer">Website ↗</a>}
+                <a href={googlePlace.google_maps_uri} target="_blank" rel="noreferrer">Directions on Google Maps ↗</a>
+              </div>
+            ) : (
+              <p className="googlePlaceSignIn">
+                {user ? 'Live Google details are temporarily unavailable.' : 'Sign in to load current Google place details.'}
+              </p>
+            )}
+            {googlePlace?.opening_hours.length ? (
+              <details className="googleOpeningHours">
+                <summary>Current opening hours</summary>
+                <ul>
+                  {googlePlace.opening_hours.map((hours) => <li key={hours}>{hours}</li>)}
+                </ul>
+              </details>
+            ) : null}
+            <small className="googleAttribution">Location details provided by Google Maps</small>
+          </section>
+        )}
 
         <section className="bookingComposer">
           <div className="composerHeader">

@@ -114,6 +114,7 @@ export default function HomePage({
                     <div>
                       <p className="kicker">{cafe.area}</p>
                       <h3>{cafe.name}</h3>
+                      {cafe.google_place_id && <span className="mapsLinkedBadge">Google Maps linked</span>}
                     </div>
                     <div className="workspaceMetrics">
                       <span>{cafe.total_slots} seats</span>

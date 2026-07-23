@@ -11,6 +11,8 @@ export interface Cafe {
   total_slots: number;
   has_generator: boolean;
   wifi_speed_mbps: number;
+  google_place_id: string | null;
+  google_maps_url: string | null;
   cover_image_path: string | null;
   cover_image_url: string | null;
   created_at: Date;
@@ -26,6 +28,8 @@ export interface CreateCafeRequest {
   total_slots: number;
   has_generator: boolean;
   wifi_speed_mbps: number;
+  google_place_id?: string | null;
+  google_session_token?: string;
 }
 
 export interface UpdateCafeRequest extends Partial<CreateCafeRequest> {}
@@ -118,4 +122,23 @@ export interface CreateOwnerApplicationRequest {
 export interface ApiError {
   error: string;
   details?: string;
+}
+
+export interface GooglePlaceSuggestion {
+  place_id: string;
+  name: string;
+  address: string;
+}
+
+export interface GooglePlaceDetails {
+  place_id: string;
+  display_name: string;
+  formatted_address: string;
+  latitude: number;
+  longitude: number;
+  google_maps_uri: string;
+  business_status: string | null;
+  phone: string | null;
+  website: string | null;
+  opening_hours: string[];
 }

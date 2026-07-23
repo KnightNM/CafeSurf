@@ -11,6 +11,7 @@ import {
   uploadCafeCoverApi,
 } from './api';
 import WorkspaceCover from './components/WorkspaceCover';
+import GooglePlaceAutocomplete from './components/GooglePlaceAutocomplete';
 import { hourLabel } from './lib/format';
 import type { Cafe, CafeBooking, CreateCafeRequest } from './types';
 
@@ -28,6 +29,7 @@ const EMPTY_FORM: CreateCafeRequest = {
   total_slots: 0,
   has_generator: false,
   wifi_speed_mbps: 50,
+  google_place_id: null,
 };
 
 export default function CafeOwnerDashboard({ token, userRole }: CafeOwnerDashboardProps) {
@@ -77,6 +79,7 @@ export default function CafeOwnerDashboard({ token, userRole }: CafeOwnerDashboa
         total_slots: editingCafe.total_slots,
         has_generator: editingCafe.has_generator,
         wifi_speed_mbps: editingCafe.wifi_speed_mbps,
+        google_place_id: editingCafe.google_place_id,
       });
     }
   }, [isNew, isEdit, editingCafe]);
@@ -225,6 +228,8 @@ export default function CafeOwnerDashboard({ token, userRole }: CafeOwnerDashboa
       total_slots: formData.total_slots || 8,
       has_generator: formData.has_generator,
       wifi_speed_mbps: formData.wifi_speed_mbps,
+      google_place_id: formData.google_place_id ?? null,
+      google_maps_url: null,
       cover_image_path: null,
       cover_image_url: null,
     } as Cafe;
@@ -237,6 +242,29 @@ export default function CafeOwnerDashboard({ token, userRole }: CafeOwnerDashboa
           <button className="ghostButton" onClick={() => navigate('/owner/cafes')}>← Back</button>
         </div>
         <form className="cafeForm" onSubmit={(event) => void saveCafe(event)}>
+          <GooglePlaceAutocomplete
+            token={token}
+            value={formData.name}
+            linkedPlaceId={formData.google_place_id}
+            onInputChange={(value) => setFormData((current) => ({
+              ...current,
+              name: value,
+              google_place_id: null,
+              google_session_token: undefined,
+            }))}
+            onSelect={(suggestion, sessionToken) => setFormData((current) => ({
+              ...current,
+              name: suggestion.name,
+              area: suggestion.address,
+              google_place_id: suggestion.place_id,
+              google_session_token: sessionToken,
+            }))}
+          />
+          {editingCafe?.google_maps_url && formData.google_place_id && (
+            <a className="googleMapsAdminLink" href={editingCafe.google_maps_url} target="_blank" rel="noreferrer">
+              Open the currently linked location on Google Maps ↗
+            </a>
+          )}
           <div className="coverField">
             <WorkspaceCover cafe={coverCafe} />
             <div className="coverFieldActions">
@@ -248,10 +276,10 @@ export default function CafeOwnerDashboard({ token, userRole }: CafeOwnerDashboa
             </div>
           </div>
           <div className="formGrid">
-            <label>Workspace name<input value={formData.name} onChange={(event) => updateField('name', event.target.value)} required /></label>
-            <label>Area<input value={formData.area} onChange={(event) => updateField('area', event.target.value)} required /></label>
-            <label>Latitude<input type="number" step="any" value={formData.latitude || ''} onChange={(event) => updateField('latitude', Number(event.target.value))} required /></label>
-            <label>Longitude<input type="number" step="any" value={formData.longitude || ''} onChange={(event) => updateField('longitude', Number(event.target.value))} required /></label>
+            <label>Workspace name<input value={formData.name} onChange={(event) => updateField('name', event.target.value)} required readOnly={Boolean(formData.google_place_id)} /></label>
+            <label>Area or address<input value={formData.area} onChange={(event) => updateField('area', event.target.value)} required readOnly={Boolean(formData.google_place_id)} /></label>
+            <label>Latitude<input type="number" step="any" value={formData.latitude || ''} onChange={(event) => updateField('latitude', Number(event.target.value))} required={!formData.google_place_id} readOnly={Boolean(formData.google_place_id)} placeholder={formData.google_place_id ? 'Verified when saved' : ''} /></label>
+            <label>Longitude<input type="number" step="any" value={formData.longitude || ''} onChange={(event) => updateField('longitude', Number(event.target.value))} required={!formData.google_place_id} readOnly={Boolean(formData.google_place_id)} placeholder={formData.google_place_id ? 'Verified when saved' : ''} /></label>
             <label>Rate per seat / hour (LKR)<input type="number" min="1" value={formData.hourly_rate || ''} onChange={(event) => updateField('hourly_rate', Number(event.target.value))} required /></label>
             <label>Total seats<input type="number" min="1" value={formData.total_slots || ''} onChange={(event) => updateField('total_slots', Number(event.target.value))} required /></label>
             <label>Wi‑Fi speed (Mbps)<input type="number" min="0" value={formData.wifi_speed_mbps || ''} onChange={(event) => updateField('wifi_speed_mbps', Number(event.target.value))} /></label>
@@ -293,6 +321,7 @@ export default function CafeOwnerDashboard({ token, userRole }: CafeOwnerDashboa
                 </div>
               </div>
               <div className="cafeManageActions">
+                {cafe.google_maps_url && <a className="googleMapsAdminLink" href={cafe.google_maps_url} target="_blank" rel="noreferrer">Google Maps ↗</a>}
                 <button className="primaryButton" onClick={() => navigate(`/owner/cafes/${cafe.id}/bookings`)}>Bookings</button>
                 <button className="ghostButton" onClick={() => navigate(`/owner/cafes/${cafe.id}/edit`)}>Edit</button>
                 <button className="dangerButton" onClick={() => void removeCafe(cafe)}>Delete</button>
