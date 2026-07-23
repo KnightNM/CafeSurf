@@ -83,6 +83,8 @@ export default function CafeOwnerDashboard({ token, userRole }: CafeOwnerDashboa
 
   useEffect(() => {
     if (!isBookings || !id) return;
+    setError(null);
+    setCafeBookings([]);
     setBookingsLoading(true);
     fetchCafeBookings(token, id)
       .then(setCafeBookings)
@@ -178,7 +180,7 @@ export default function CafeOwnerDashboard({ token, userRole }: CafeOwnerDashboa
           <div><p className="kicker">BOOKING OPERATIONS</p><h2>{editingCafe?.name ?? 'Workspace bookings'}</h2></div>
           <button className="ghostButton" onClick={() => navigate('/owner/cafes')}>← Back</button>
         </div>
-        {bookingsLoading ? <div className="emptyState">Loading bookings…</div> : !cafeBookings.length ? (
+        {error ? null : bookingsLoading ? <div className="emptyState">Loading bookings…</div> : !cafeBookings.length ? (
           <div className="emptyState"><h3>No booking requests yet.</h3></div>
         ) : (
           <div className="bookingsTableWrap">
