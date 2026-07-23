@@ -13,6 +13,7 @@ import type {
   User,
   CafeCoverUploadTicket,
   GooglePlaceDetails,
+  GooglePlaceImport,
   GooglePlaceSuggestion,
   CafeRevision,
   CafeRevisionStatus,
@@ -100,6 +101,21 @@ export async function autocompleteGooglePlaces(
     token
   );
   return data.suggestions;
+}
+
+export async function importGooglePlaceDetails(
+  token: string,
+  placeId: string,
+  sessionToken: string
+): Promise<GooglePlaceImport> {
+  return request<GooglePlaceImport>(
+    '/api/google-places/details',
+    {
+      method: 'POST',
+      body: JSON.stringify({ place_id: placeId, session_token: sessionToken }),
+    },
+    token
+  );
 }
 
 export async function fetchCafeGooglePlace(

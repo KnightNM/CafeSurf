@@ -3,7 +3,9 @@ import { db } from '../config/database';
 import type { Cafe } from '../models/types';
 import {
   autocompleteGooglePlaces,
+  getGooglePlaceImport,
   getGooglePlaceDetails,
+  validatePlaceId,
   validatePlaceInput,
   validateSessionToken,
 } from '../services/googlePlaces';
@@ -25,6 +27,18 @@ export async function autocompletePlaces(req: Request, res: Response): Promise<v
       validateSessionToken(req.body.session_token)
     );
     res.json({ suggestions });
+  } catch (error) {
+    sendGooglePlacesError(res, error);
+  }
+}
+
+export async function importPlaceDetails(req: Request, res: Response): Promise<void> {
+  try {
+    const imported = await getGooglePlaceImport(
+      validatePlaceId(req.body.place_id),
+      validateSessionToken(req.body.session_token)
+    );
+    res.json(imported);
   } catch (error) {
     sendGooglePlacesError(res, error);
   }

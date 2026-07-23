@@ -16,7 +16,8 @@ café-owner registrations.
 - **Cover images:** Public approved covers plus a private revision-cover bucket;
   Express signs and verifies both workflows
 - **Locations:** Google Places API (New) through an authenticated Express proxy;
-  cafés store the stable Place ID and fetch current Google details when needed
+  owners/admins import supported profile details once and customers read the
+  approved stored profile
 - **Design:** Self-hosted Bricolage Grotesque and DM Sans, responsive routed
   React pages, and lightweight CSS/SVG motion with reduced-motion support
 
@@ -43,8 +44,11 @@ Bearer token.
   bookings, revisions, and stored covers after two confirmations.
 - New cafés are linked to a Google Place ID. The display name remains editable,
   while the verified address and coordinates stay tied to Google.
-- CafeSurf weekly hours control public availability and booking validation.
-- Public visitors can view current Google place details and open the café in Maps.
+- Google phone, website, summary, regular hours, parking, accessibility, outdoor
+  seating, and food indicators are imported when Google supplies them.
+- CafeSurf minute-accurate, multi-period weekly hours control public availability
+  and booking validation.
+- Public visitors can view approved imported details and open the café in Maps.
 
 Rates are shown per seat/hour. A booking total is:
 

@@ -1,16 +1,16 @@
 # Graph Report - CAFE_Booking_Main  (2026-07-23)
 
 ## Corpus Check
-- 82 files · ~28,644 words
+- 84 files · ~31,245 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 524 nodes · 959 edges · 52 communities (24 shown, 28 thin omitted)
+- 547 nodes · 1013 edges · 51 communities (23 shown, 28 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 7 edges (avg confidence: 0.59)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `03a6d6ab`
+- Built from commit: `136c882d`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -29,7 +29,6 @@
 - Google Places API
 - Customer Booking Client
 - App Routing and Sessions
-- Public Navigation
 - Booking Lifecycle
 - Data-Driven Homepage
 - Admin Café Review
@@ -72,11 +71,11 @@
 3. `CafeSurf setup and run instructions` - 15 edges
 4. `serializeCafe()` - 14 edges
 5. `getSupabaseAdmin()` - 13 edges
-6. `sendRevisionError()` - 12 edges
-7. `getGooglePlaceDetails()` - 12 edges
-8. `Supabase Auth and authorization setup` - 11 edges
-9. `db` - 10 edges
-10. `withPreview()` - 10 edges
+6. `getGooglePlaceDetails()` - 13 edges
+7. `sendRevisionError()` - 12 edges
+8. `validatePlaceId()` - 11 edges
+9. `Supabase Auth and authorization setup` - 11 edges
+10. `db` - 10 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `attachCafeCover()` --calls--> `getSupabaseAdmin()`  [EXTRACTED]
@@ -87,8 +86,8 @@
   cafe-booking-server/src/controllers/cafeManagementController.ts → cafe-booking-server/src/config/supabase.ts
 - `permanentlyDeleteCafe()` --calls--> `getSupabaseAdmin()`  [EXTRACTED]
   cafe-booking-server/src/controllers/cafeManagementController.ts → cafe-booking-server/src/config/supabase.ts
-- `getMyCafes()` --indirect_call--> `serializeCafe()`  [INFERRED]
-  cafe-booking-server/src/controllers/cafeManagementController.ts → cafe-booking-server/src/controllers/cafeController.ts
+- `createBooking()` --calls--> `isCafeOpenForRange()`  [EXTRACTED]
+  cafe-booking-server/src/controllers/bookingController.ts → cafe-booking-server/src/services/cafeProfile.ts
 
 ## Import Cycles
 - None detected.
@@ -98,71 +97,67 @@
 - **CafeSurf Owner Promotion Flow** — readme_role_based_user_flows, run_instructions_owner_application_workflow, cafe_booking_server_auth_setup_owner_applications, cafe_booking_server_auth_setup_transactional_owner_approval [INFERRED 0.95]
 - **CafeSurf Runtime Configuration** — run_instructions_backend_environment, run_instructions_frontend_environment, cafe_booking_server_auth_setup_server_environment, cafe_booking_web_readme_frontend_environment [INFERRED 0.85]
 
-## Communities (52 total, 28 thin omitted)
+## Communities (51 total, 28 thin omitted)
 
 ### Community 0 - "Server Runtime"
 Cohesion: 0.05
 Nodes (38): dependencies, cors, dotenv, express, pg-promise, @supabase/supabase-js, description, devDependencies (+30 more)
 
 ### Community 1 - "Public Café APIs"
-Cohesion: 0.09
-Nodes (42): getCafeCoverPublicUrl(), supabaseAuth, getCafe(), getCafeAvailability(), getCafes(), serializeCafe(), attachCafeCover(), COVER_EXTENSIONS (+34 more)
+Cohesion: 0.11
+Nodes (33): getCafeCoverPublicUrl(), supabaseAuth, getCafe(), getCafeAvailability(), getCafes(), serializeCafe(), attachCafeCover(), COVER_EXTENSIONS (+25 more)
 
 ### Community 2 - "Owner Application API"
-Cohesion: 0.11
-Nodes (25): calculateBookingTotal(), cancelBooking(), checkinBooking(), createBooking(), getBookingsByUser(), hasSeatCapacity(), normalizeTeamSize(), updateBookingStatus() (+17 more)
+Cohesion: 0.09
+Nodes (42): autocompletePlaces(), cafePlaceDetails(), importPlaceDetails(), sendGooglePlacesError(), ApiError, AvailabilityResponse, BookingStatus, CAFE_AMENITIES (+34 more)
 
 ### Community 3 - "Web Dependencies"
 Cohesion: 0.06
 Nodes (35): dependencies, @fontsource-variable/bricolage-grotesque, @fontsource-variable/dm-sans, react, react-dom, react-router-dom, @supabase/supabase-js, devDependencies (+27 more)
 
 ### Community 4 - "Authorization Documentation"
-Cohesion: 0.08
-Nodes (22): Administrator permanent-delete veto, Café cover uploads, Café profile approval, Database migration, First administrator, Owner applications, Request authorization, Required server environment (+14 more)
+Cohesion: 0.11
+Nodes (16): Administrator permanent-delete veto, Café cover uploads, Café profile approval, Database migration, First administrator, Owner applications, Request authorization, Required server environment (+8 more)
 
 ### Community 5 - "Admin Owner Review"
 Cohesion: 0.13
-Nodes (21): ApiError, createCafeApi(), createCafeRevisionApi(), deleteCafeApi(), deleteCafeCoverApi(), fetchCafeBookings(), fetchMyCafeRevisions(), fetchMyCafes() (+13 more)
+Nodes (22): ApiError, createCafeApi(), createCafeRevisionApi(), deleteCafeApi(), deleteCafeCoverApi(), fetchCafeBookings(), fetchMyCafeRevisions(), fetchMyCafes() (+14 more)
 
 ### Community 6 - "Auth and Home Summary"
-Cohesion: 0.06
-Nodes (43): db, pgp, getCurrentUser(), getHomeSummary(), getPublicSummary(), PublicWorkspaceSummary, createOwnerApplication(), decideOwnerApplication() (+35 more)
+Cohesion: 0.07
+Nodes (36): db, pgp, getCurrentUser(), calculateBookingTotal(), cancelBooking(), checkinBooking(), createBooking(), getBookingsByUser() (+28 more)
 
 ### Community 7 - "Server TypeScript Config"
 Cohesion: 0.08
 Nodes (24): compilerOptions, declaration, esModuleInterop, forceConsistentCasingInFileNames, lib, module, moduleResolution, noFallthroughCasesInSwitch (+16 more)
 
 ### Community 8 - "Café Revision Workflow"
-Cohesion: 0.28
-Nodes (21): getSupabaseAdmin(), attachRevisionCover(), createCafeRevision(), createRevisionCoverUploadUrl(), decideCafeRevision(), deleteRevisionCover(), getAuthorizedRevision(), getCafeRevision() (+13 more)
+Cohesion: 0.25
+Nodes (22): getSupabaseAdmin(), attachRevisionCover(), createCafeRevision(), createRevisionCoverUploadUrl(), decideCafeRevision(), deleteRevisionCover(), getAuthorizedRevision(), getCafeRevision() (+14 more)
 
 ### Community 9 - "Web TypeScript Config"
 Cohesion: 0.09
 Nodes (22): compilerOptions, allowJs, allowSyntheticDefaultImports, esModuleInterop, forceConsistentCasingInFileNames, isolatedModules, jsx, lib (+14 more)
 
 ### Community 10 - "Café Profile Models"
-Cohesion: 0.15
-Nodes (15): AMENITY_LABELS, DAYS, Booking, BookingStatus, BookingWithCafe, CAFE_AMENITIES, CafeAmenity, CafeBooking (+7 more)
+Cohesion: 0.14
+Nodes (15): AdminOwnerApplicationsProps, decideOwnerApplicationApi(), fetchOwnerApplications(), Booking, BookingStatus, BookingWithCafe, CafeBooking, CafeCoverUploadTicket (+7 more)
 
 ### Community 11 - "Google Places API"
-Cohesion: 0.09
-Nodes (22): 10. How authentication and roles work, 11. Verify the complete flow, 12. Test and build, 13. Production deployment, 1. Prerequisites, 2. Create local environment files, 3. Configure Supabase Auth, 4. Configure Resend SMTP (+14 more)
+Cohesion: 0.07
+Nodes (28): CafeSurf web app, Current features, Data and authorization boundary, Environment, Run the web app, Test and build, 10. How authentication and roles work, 11. Verify the complete flow (+20 more)
 
 ### Community 12 - "Customer Booking Client"
-Cohesion: 0.28
-Nodes (6): cancelBooking(), checkInBooking(), createBooking(), fetchMyBookings(), BookingsPage(), upcoming()
+Cohesion: 0.13
+Nodes (15): importGooglePlaceDetails(), request(), AMENITY_LABELS, applyGoogleImport(), CafeProfileForm(), DAYS, IMPORT_FIELDS, importAvailable() (+7 more)
 
 ### Community 13 - "App Routing and Sessions"
-Cohesion: 0.29
-Nodes (5): AdminOwnerApplicationsProps, decideOwnerApplicationApi(), fetchOwnerApplications(), OwnerApplication, OwnerApplicationStatus
-
-### Community 14 - "Public Navigation"
-Cohesion: 0.21
-Nodes (13): fetchAvailability(), fetchCafe(), fetchCafeGooglePlace(), paletteIndex(), cafe, WorkspaceCover(), todayString(), SpacePage() (+5 more)
+Cohesion: 0.30
+Nodes (10): createOwnerApplication(), decideOwnerApplication(), getMyOwnerApplication(), listOwnerApplications(), optionalText(), requiredText(), sendError(), CreateOwnerApplicationRequest (+2 more)
 
 ### Community 16 - "Data-Driven Homepage"
-Cohesion: 0.09
-Nodes (24): fetchCafes(), fetchHomeSummary(), getCurrentUser(), App(), readIntent(), AuthMode, AuthProps, Brand() (+16 more)
+Cohesion: 0.06
+Nodes (43): cancelBooking(), checkInBooking(), createBooking(), fetchAvailability(), fetchCafe(), fetchCafeGooglePlace(), fetchCafes(), fetchHomeSummary() (+35 more)
 
 ### Community 17 - "Admin Café Review"
 Cohesion: 0.29
@@ -189,24 +184,24 @@ Cohesion: 0.67
 Nodes (3): CafeSurf HTML Shell, Main TSX Module, React Root Mount Element
 
 ## Knowledge Gaps
-- **182 isolated node(s):** `name`, `version`, `description`, `main`, `dev` (+177 more)
+- **190 isolated node(s):** `name`, `version`, `description`, `main`, `dev` (+185 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **28 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `CafeSurf setup and run instructions` connect `Google Places API` to `Authorization Documentation`?**
-  _High betweenness centrality (0.005) - this node is a cross-community bridge._
-- **Why does `db` connect `Auth and Home Summary` to `Café Revision Workflow`, `Public Café APIs`, `Owner Application API`?**
+- **Why does `db` connect `Auth and Home Summary` to `Café Revision Workflow`, `Public Café APIs`, `Owner Application API`, `App Routing and Sessions`?**
   _High betweenness centrality (0.005) - this node is a cross-community bridge._
 - **Are the 2 inferred relationships involving `serializeCafe()` (e.g. with `getCafes()` and `getMyCafes()`) actually correct?**
   _`serializeCafe()` has 2 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `name`, `version`, `description` to the rest of the system?**
-  _187 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _195 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Server Runtime` be split into smaller, more focused modules?**
   _Cohesion score 0.05128205128205128 - nodes in this community are weakly interconnected._
 - **Should `Public Café APIs` be split into smaller, more focused modules?**
-  _Cohesion score 0.08665269042627533 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.10963455149501661 - nodes in this community are weakly interconnected._
 - **Should `Owner Application API` be split into smaller, more focused modules?**
-  _Cohesion score 0.11494252873563218 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.0851063829787234 - nodes in this community are weakly interconnected._
+- **Should `Web Dependencies` be split into smaller, more focused modules?**
+  _Cohesion score 0.05555555555555555 - nodes in this community are weakly interconnected._

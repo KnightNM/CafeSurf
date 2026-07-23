@@ -14,6 +14,8 @@ export interface Cafe {
   has_generator: boolean;
   wifi_speed_mbps: number;
   google_place_id: string | null;
+  google_business_status: string | null;
+  google_imported_at: string | null;
   google_maps_url: string | null;
   cover_image_path?: string | null;
   cover_image_url: string | null;
@@ -86,6 +88,8 @@ export interface CreateCafeRequest {
   wifi_speed_mbps: number;
   google_place_id?: string | null;
   google_session_token?: string;
+  google_business_status?: string | null;
+  google_imported_at?: string | null;
   description: string;
   contact_phone: string | null;
   contact_email: string | null;
@@ -106,7 +110,8 @@ export const CAFE_AMENITIES = [
 ] as const;
 export type CafeAmenity = typeof CAFE_AMENITIES[number];
 export type Weekday = 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';
-export type WeeklyOpeningHours = Record<Weekday, { closed: boolean; open: number; close: number }>;
+export interface OpeningHoursPeriod { open_minute: number; close_minute: number }
+export type WeeklyOpeningHours = Record<Weekday, { closed: boolean; periods: OpeningHoursPeriod[] }>;
 
 export type CafeRevisionAction = 'create' | 'update' | 'archive';
 export type CafeRevisionStatus = 'draft' | 'pending' | 'approved' | 'rejected' | 'withdrawn';
@@ -168,7 +173,27 @@ export interface GooglePlaceDetails {
   business_status: string | null;
   phone: string | null;
   website: string | null;
-  opening_hours: string[];
+}
+
+export interface GooglePlaceImport {
+  place: GooglePlaceDetails;
+  suggested_profile: {
+    name: string;
+    area: string;
+    latitude: number;
+    longitude: number;
+    google_place_id: string;
+    google_business_status: string | null;
+    google_imported_at: string;
+    contact_phone: string | null;
+    website_url: string | null;
+    description: string | null;
+    amenities: CafeAmenity[];
+    amenity_evidence: Partial<Record<CafeAmenity, boolean>>;
+    opening_hours: WeeklyOpeningHours | null;
+  };
+  imported_fields: string[];
+  warnings: string[];
 }
 
 export type OwnerApplicationStatus = 'pending' | 'approved' | 'rejected';

@@ -133,6 +133,10 @@ It supports the admin-only permanent-delete veto, which removes the café and al
 associated bookings and revisions after exact-name and final confirmations.
 Archive remains the history-preserving default removal action.
 
+Migration `007` adds the Google import timestamp and business status, and converts
+every café from one whole-hour interval per day to minute-accurate, multi-period
+CafeSurf schedules. Existing effective hours are preserved during conversion.
+
 ## 6. Configure Google Places
 
 In Google Cloud Console:
@@ -150,15 +154,15 @@ The browser never calls Google directly. Express:
 
 - Requires an owner/admin session for Sri Lanka–restricted autocomplete.
 - Uses a UUID session token across autocomplete and the selected Place Details call.
-- Verifies the selected Place ID and obtains authoritative name, address, and
-  coordinates when the café is saved.
-- Lets public visitors request live details only for a Place ID already attached
-  to a published CafeSurf café.
+- Immediately imports supported Google contact, summary, hours, accessibility,
+  parking, outdoor-seating, and food data after selection.
+- Re-verifies the selected Place ID, business status, address, and coordinates
+  when the café is saved.
 
-CafeSurf stores only the stable Google Place ID. Other Google details are fetched
-when displayed rather than persisted. Keep the Google Maps attribution visible,
-maintain public privacy/terms pages, and periodically refresh Place IDs older
-than 12 months.
+The selected data becomes an editable CafeSurf profile snapshot after owner/admin
+review. It is not synchronized later, and raw Google responses are not stored.
+The richer fields use higher-billing Place Details tiers, so configure quotas and
+budget alerts. Keep Google Maps attribution and public privacy/terms pages current.
 
 ## 7. Register the first administrator
 
@@ -248,8 +252,8 @@ administrators retain global access.
 Owners manage bookings immediately, but new cafés, profile edits, cover changes,
 and removal requests use `/api/cafe-revisions`. Customers continue seeing the
 approved profile while a revision is open. Admin direct edits publish immediately
-and create an approved audit record. CafeSurf weekly hours—not Google hours—
-control availability and booking validation.
+and create an approved audit record. Google regular hours prefill the editable,
+multi-period CafeSurf schedule; the approved CafeSurf hours control availability.
 
 ## 11. Verify the complete flow
 
@@ -273,15 +277,17 @@ control availability and booking validation.
 13. Confirm an owner cannot revise another owner's café.
 14. Confirm a public visitor can browse spaces and availability but is asked to
     sign in before the final booking confirmation.
-15. As an owner/admin, type a café name, select the correct Google suggestion,
-    and verify that its name, address, and coordinates are populated on save.
-16. As a public visitor, open that workspace, verify approved profile and live
-    Google details, and use the Google Maps redirect.
-17. Verify homepage and cross-route `Find a space`/`How it works` links focus
+15. As an owner/admin, select a Google suggestion and verify immediate import of
+    available identity, contact, description, amenity, and multi-period hour data.
+16. Relink an existing test café, preview the changes, and verify CafeSurf-only
+    pricing, capacity, Wi-Fi, power, rules, and access fields remain unchanged.
+17. As a public visitor, verify only the approved stored profile is shown and use
+    the Google Maps redirect.
+18. Verify homepage and cross-route `Find a space`/`How it works` links focus
     the correct heading.
-18. Check short, fully opaque sticky transitions and normal mobile/reduced-motion
+19. Check short, fully opaque sticky transitions and normal mobile/reduced-motion
     scrolling.
-19. Confirm `/api/home/summary` shows only real, role-safe data or honest empties.
+20. Confirm `/api/home/summary` shows only real, role-safe data or honest empties.
 
 ## 12. Test and build
 

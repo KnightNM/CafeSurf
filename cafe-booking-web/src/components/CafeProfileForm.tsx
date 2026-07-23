@@ -1,8 +1,12 @@
+import { useEffect, useState } from 'react';
+import { importGooglePlaceDetails } from '../api';
 import GooglePlaceAutocomplete from './GooglePlaceAutocomplete';
 import {
   CAFE_AMENITIES,
   type CafeAmenity,
   type CreateCafeRequest,
+  type GooglePlaceImport,
+  type OpeningHoursPeriod,
   type Weekday,
 } from '../types';
 
@@ -22,6 +26,17 @@ const AMENITY_LABELS: Record<CafeAmenity, string> = {
   outdoor_seating: 'Outdoor seating',
 };
 
+const IMPORT_FIELDS = [
+  ['location', 'Verified identity and location'],
+  ['contact_phone', 'Contact phone'],
+  ['website_url', 'Website'],
+  ['description', 'Description'],
+  ['amenities', 'Google-supported amenities'],
+  ['opening_hours', 'Regular opening hours'],
+] as const;
+
+type ImportField = typeof IMPORT_FIELDS[number][0];
+
 export function createEmptyProfile(): CreateCafeRequest {
   return {
     name: '',
@@ -33,13 +48,18 @@ export function createEmptyProfile(): CreateCafeRequest {
     has_generator: false,
     wifi_speed_mbps: 50,
     google_place_id: null,
+    google_business_status: null,
+    google_imported_at: null,
     description: '',
     contact_phone: null,
     contact_email: null,
     website_url: null,
     amenities: [],
     opening_hours: Object.fromEntries(
-      DAYS.map((day) => [day, { closed: false, open: 0, close: 24 }])
+      DAYS.map((day) => [day, {
+        closed: false,
+        periods: [{ open_minute: 0, close_minute: 1440 }],
+      }])
     ) as CreateCafeRequest['opening_hours'],
     house_rules: '',
     access_instructions: '',
@@ -47,17 +67,117 @@ export function createEmptyProfile(): CreateCafeRequest {
   };
 }
 
+function importAvailable(result: GooglePlaceImport, field: ImportField): boolean {
+  if (field === 'location') return true;
+  return result.imported_fields.includes(field);
+}
+
+export function applyGoogleImport(
+  current: CreateCafeRequest,
+  result: GooglePlaceImport,
+  selected: Set<ImportField>
+): CreateCafeRequest {
+  const suggestion = result.suggested_profile;
+  const next = { ...current };
+  if (selected.has('location')) {
+    next.name = suggestion.name;
+    next.area = suggestion.area;
+    next.latitude = suggestion.latitude;
+    next.longitude = suggestion.longitude;
+    next.google_place_id = suggestion.google_place_id;
+    next.google_business_status = suggestion.google_business_status;
+    next.google_imported_at = suggestion.google_imported_at;
+  }
+  if (selected.has('contact_phone') && suggestion.contact_phone) {
+    next.contact_phone = suggestion.contact_phone;
+  }
+  if (selected.has('website_url') && suggestion.website_url) {
+    next.website_url = suggestion.website_url;
+  }
+  if (selected.has('description') && suggestion.description) {
+    next.description = suggestion.description;
+  }
+  if (selected.has('opening_hours') && suggestion.opening_hours) {
+    next.opening_hours = suggestion.opening_hours;
+  }
+  if (selected.has('amenities')) {
+    const amenities = new Set(next.amenities);
+    Object.entries(suggestion.amenity_evidence).forEach(([amenity, enabled]) => {
+      if (enabled === true) amenities.add(amenity as CafeAmenity);
+      if (enabled === false) amenities.delete(amenity as CafeAmenity);
+    });
+    next.amenities = [...amenities];
+  }
+  next.google_session_token = undefined;
+  return next;
+}
+
+function MinuteSelect({
+  value,
+  allowEndOfDay,
+  onChange,
+}: {
+  value: number;
+  allowEndOfDay?: boolean;
+  onChange: (value: number) => void;
+}) {
+  const hour = Math.floor(value / 60);
+  const minute = value % 60;
+  const maxHour = allowEndOfDay ? 24 : 23;
+  return (
+    <span className="minuteSelect">
+      <select
+        aria-label="Hour"
+        value={hour}
+        onChange={(event) => {
+          const nextHour = Number(event.target.value);
+          onChange(nextHour === 24 ? 1440 : nextHour * 60 + minute);
+        }}
+      >
+        {Array.from({ length: maxHour + 1 }, (_, index) => (
+          <option value={index} key={index}>{String(index).padStart(2, '0')}</option>
+        ))}
+      </select>
+      <span>:</span>
+      <select
+        aria-label="Minute"
+        value={hour === 24 ? 0 : minute}
+        disabled={hour === 24}
+        onChange={(event) => onChange(hour * 60 + Number(event.target.value))}
+      >
+        {Array.from({ length: 60 }, (_, index) => (
+          <option value={index} key={index}>{String(index).padStart(2, '0')}</option>
+        ))}
+      </select>
+    </span>
+  );
+}
+
 export default function CafeProfileForm({
   token,
   value,
   onChange,
   requireGoogle,
+  existingProfile,
 }: {
   token: string;
   value: CreateCafeRequest;
   onChange: (profile: CreateCafeRequest) => void;
   requireGoogle: boolean;
+  existingProfile?: CreateCafeRequest | null;
 }) {
+  const [choosingLocation, setChoosingLocation] = useState(!value.google_place_id);
+  const [placeSearch, setPlaceSearch] = useState('');
+  const [importing, setImporting] = useState(false);
+  const [importError, setImportError] = useState<string | null>(null);
+  const [warnings, setWarnings] = useState<string[]>([]);
+  const [pendingImport, setPendingImport] = useState<GooglePlaceImport | null>(null);
+  const [selectedFields, setSelectedFields] = useState<Set<ImportField>>(new Set());
+
+  useEffect(() => {
+    if (value.google_place_id && !pendingImport) setChoosingLocation(false);
+  }, [pendingImport, value.google_place_id]);
+
   const set = <K extends keyof CreateCafeRequest>(key: K, next: CreateCafeRequest[K]) => {
     onChange({ ...value, [key]: next });
   };
@@ -67,44 +187,106 @@ export default function CafeProfileForm({
       : [...value.amenities, amenity]);
   };
 
+  async function selectPlace(placeId: string, sessionToken: string) {
+    setImporting(true);
+    setImportError(null);
+    try {
+      const result = await importGooglePlaceDetails(token, placeId, sessionToken);
+      const defaults = new Set<ImportField>(
+        IMPORT_FIELDS
+          .filter(([field]) => importAvailable(result, field))
+          .map(([field]) => field)
+      );
+      if (existingProfile) {
+        setPendingImport(result);
+        setSelectedFields(defaults);
+      } else {
+        onChange(applyGoogleImport(value, result, defaults));
+        setWarnings(result.warnings);
+        setChoosingLocation(false);
+        setPlaceSearch('');
+      }
+    } catch (caught) {
+      setImportError(caught instanceof Error ? caught.message : 'Could not import Google details');
+    } finally {
+      setImporting(false);
+    }
+  }
+
+  function applyPendingImport() {
+    if (!pendingImport) return;
+    onChange(applyGoogleImport(value, pendingImport, selectedFields));
+    setWarnings(pendingImport.warnings);
+    setPendingImport(null);
+    setChoosingLocation(false);
+    setPlaceSearch('');
+  }
+
   return (
     <>
       <div className="formSectionBlock">
         <div className="formSectionHeading">
           <p className="kicker">GOOGLE-VERIFIED LOCATION</p>
           <h3>Location and public identity</h3>
-          <p>The display name stays editable. Google controls the verified address and coordinates.</p>
+          <p>Selecting a Google result imports every supported detail once. Address and coordinates remain Google-verified.</p>
         </div>
-        {value.google_place_id ? (
+        {value.google_place_id && !choosingLocation ? (
           <div className="googleLinkedStatus linkedLocationSummary">
             <span>✓ Linked to Google Maps</span>
             <small>{value.area}</small>
-            <button type="button" className="textButton" onClick={() => onChange({
-              ...value,
-              google_place_id: null,
-              google_session_token: undefined,
-              area: '',
-              latitude: 0,
-              longitude: 0,
-            })}>Choose a different location</button>
+            {value.google_imported_at && <small>Imported {new Date(value.google_imported_at).toLocaleDateString()}</small>}
+            <button type="button" className="textButton" onClick={() => {
+              setChoosingLocation(true);
+              setPlaceSearch('');
+              setImportError(null);
+            }}>Choose a different location</button>
           </div>
         ) : (
           <GooglePlaceAutocomplete
             token={token}
-            value={value.name}
+            value={placeSearch}
             linkedPlaceId={null}
-            onInputChange={(name) => set('name', name)}
-            onSelect={(suggestion, google_session_token) => onChange({
-              ...value,
-              name: suggestion.name,
-              area: suggestion.address,
-              google_place_id: suggestion.place_id,
-              google_session_token,
-            })}
+            onInputChange={setPlaceSearch}
+            onSelect={(suggestion, sessionToken) => void selectPlace(suggestion.place_id, sessionToken)}
           />
         )}
+        {importing && <p className="fieldHint">Importing full Google Maps details…</p>}
+        {importError && <p className="fieldHint warningText" role="alert">{importError}</p>}
+        {warnings.map((warning) => <p className="fieldHint warningText" key={warning}>{warning}</p>)}
+        {value.google_business_status === 'CLOSED_TEMPORARILY' && !warnings.length && (
+          <p className="fieldHint warningText">Google currently lists this café as temporarily closed.</p>
+        )}
+        {pendingImport && (
+          <div className="googleImportPreview">
+            <div className="formSectionHeading">
+              <p className="kicker">RELINK PREVIEW</p>
+              <h3>Choose Google-backed changes</h3>
+              <p>Your CafeSurf pricing, capacity, Wi‑Fi, power, rules, and arrival details will not be changed.</p>
+            </div>
+            {IMPORT_FIELDS.filter(([field]) => importAvailable(pendingImport, field)).map(([field, label]) => (
+              <label key={field}>
+                <input
+                  type="checkbox"
+                  checked={selectedFields.has(field)}
+                  disabled={field === 'location'}
+                  onChange={(event) => {
+                    const next = new Set(selectedFields);
+                    if (event.target.checked) next.add(field);
+                    else next.delete(field);
+                    setSelectedFields(next);
+                  }}
+                />
+                <span><strong>{label}</strong>{field === 'location' && <small> Required when relinking</small>}</span>
+              </label>
+            ))}
+            <div className="formActions">
+              <button type="button" className="ghostButton" onClick={() => setPendingImport(null)}>Cancel</button>
+              <button type="button" className="primaryButton" onClick={applyPendingImport}>Apply selected details</button>
+            </div>
+          </div>
+        )}
         {requireGoogle && !value.google_place_id && (
-          <p className="fieldHint warningText">Select a Google result before saving this new café.</p>
+          <p className="fieldHint warningText">Select and import a Google result before saving this new café.</p>
         )}
         <div className="formGrid">
           <label>Public display name<input value={value.name} onChange={(event) => set('name', event.target.value)} required /></label>
@@ -129,7 +311,7 @@ export default function CafeProfileForm({
       </div>
 
       <div className="formSectionBlock">
-        <div className="formSectionHeading"><p className="kicker">AMENITIES</p><h3>Controlled workspace features</h3></div>
+        <div className="formSectionHeading"><p className="kicker">AMENITIES</p><h3>Controlled workspace features</h3><p>Google-supported values are imported when known. Unavailable Google data remains for you to confirm.</p></div>
         <div className="amenityChecklist">
           {CAFE_AMENITIES.map((amenity) => (
             <label key={amenity}>
@@ -144,21 +326,63 @@ export default function CafeProfileForm({
         <div className="formSectionHeading">
           <p className="kicker">CAFESURF HOURS</p>
           <h3>Hours that control booking</h3>
-          <p>Google hours are informational. These hours determine availability and validation.</p>
+          <p>Google regular hours are imported as a starting point. Multiple and minute-accurate periods are supported.</p>
         </div>
         <div className="hoursEditor">
           {DAYS.map((day) => {
             const schedule = value.opening_hours[day];
-            const updateDay = (patch: Partial<typeof schedule>) => set('opening_hours', {
+            const updateDay = (next: typeof schedule) => set('opening_hours', {
               ...value.opening_hours,
-              [day]: { ...schedule, ...patch },
+              [day]: next,
             });
+            const updatePeriod = (index: number, patch: Partial<OpeningHoursPeriod>) => {
+              const periods = schedule.periods.map((period, periodIndex) => (
+                periodIndex === index ? { ...period, ...patch } : period
+              ));
+              updateDay({ ...schedule, periods });
+            };
             return (
-              <div className="hoursRow" key={day}>
+              <div className="hoursRow hoursRowDetailed" key={day}>
                 <strong>{day.slice(0, 3)}</strong>
-                <label className="filterToggle"><input type="checkbox" checked={schedule.closed} onChange={(event) => updateDay({ closed: event.target.checked })} /><span>Closed</span></label>
-                <label>Open<input type="number" min="0" max="23" value={schedule.open} disabled={schedule.closed} onChange={(event) => updateDay({ open: Number(event.target.value) })} /></label>
-                <label>Close<input type="number" min="1" max="24" value={schedule.close} disabled={schedule.closed} onChange={(event) => updateDay({ close: Number(event.target.value) })} /></label>
+                <label className="filterToggle">
+                  <input
+                    type="checkbox"
+                    checked={schedule.closed}
+                    onChange={(event) => updateDay({
+                      closed: event.target.checked,
+                      periods: event.target.checked
+                        ? []
+                        : (schedule.periods.length ? schedule.periods : [{ open_minute: 540, close_minute: 1020 }]),
+                    })}
+                  />
+                  <span>Closed</span>
+                </label>
+                {!schedule.closed && (
+                  <div className="periodList">
+                    {schedule.periods.map((period, index) => (
+                      <div className="periodRow" key={`${day}-${index}`}>
+                        <MinuteSelect value={period.open_minute} onChange={(open_minute) => updatePeriod(index, { open_minute })} />
+                        <span>to</span>
+                        <MinuteSelect value={period.close_minute} allowEndOfDay onChange={(close_minute) => updatePeriod(index, { close_minute })} />
+                        {schedule.periods.length > 1 && (
+                          <button type="button" className="textButton" onClick={() => updateDay({
+                            ...schedule,
+                            periods: schedule.periods.filter((_, periodIndex) => periodIndex !== index),
+                          })}>Remove</button>
+                        )}
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      className="textButton"
+                      disabled={schedule.periods.length >= 8}
+                      onClick={() => updateDay({
+                        ...schedule,
+                        periods: [...schedule.periods, { open_minute: 1080, close_minute: 1260 }],
+                      })}
+                    >+ Add period</button>
+                  </div>
+                )}
               </div>
             );
           })}

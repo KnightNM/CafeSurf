@@ -52,8 +52,12 @@ async function getPublicSummary(): Promise<PublicWorkspaceSummary> {
          AND b.status IN ('pending','confirmed','checked_in')
          AND ch.hour >= b.start_time AND ch.hour < b.end_time
        WHERE COALESCE((ch.schedule->>'closed')::boolean, true) = false
-         AND ch.hour >= (ch.schedule->>'open')::int
-         AND ch.hour < (ch.schedule->>'close')::int
+         AND EXISTS (
+           SELECT 1
+           FROM jsonb_array_elements(COALESCE(ch.schedule->'periods', '[]'::jsonb)) AS period
+           WHERE ch.hour * 60 >= (period->>'open_minute')::int
+             AND (ch.hour + 1) * 60 <= (period->>'close_minute')::int
+         )
          AND (
            ch.date > (NOW() AT TIME ZONE 'Asia/Colombo')::date
            OR ch.hour > EXTRACT(HOUR FROM NOW() AT TIME ZONE 'Asia/Colombo')::int
