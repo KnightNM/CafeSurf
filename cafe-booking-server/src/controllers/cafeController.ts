@@ -3,6 +3,7 @@ import { db } from '../config/database';
 import { Cafe, AvailabilitySlot } from '../models/types';
 import { getCafeCoverPublicUrl } from '../config/supabase';
 import { buildGoogleMapsUrl } from '../services/googlePlaces';
+import { isCafeOpenForRange, WEEKDAYS } from '../services/cafeProfile';
 
 export function serializeCafe(cafe: Cafe): Cafe {
   return {
@@ -22,7 +23,7 @@ export function serializeCafe(cafe: Cafe): Cafe {
  */
 export async function getCafes(req: Request, res: Response): Promise<void> {
   try {
-    const conditions: string[] = [];
+    const conditions: string[] = [`publication_status = 'published'`];
     const values: unknown[] = [];
     let paramIndex = 1;
 
@@ -47,9 +48,7 @@ export async function getCafes(req: Request, res: Response): Promise<void> {
       paramIndex++;
     }
 
-    const where = conditions.length > 0
-      ? `WHERE ${conditions.join(' AND ')}`
-      : '';
+    const where = `WHERE ${conditions.join(' AND ')}`;
 
     const cafes: Cafe[] = await db.any(
       `SELECT * FROM cafes ${where} ORDER BY area, name`,
@@ -65,7 +64,10 @@ export async function getCafes(req: Request, res: Response): Promise<void> {
 
 export async function getCafe(req: Request, res: Response): Promise<void> {
   try {
-    const cafe = await db.oneOrNone<Cafe>('SELECT * FROM cafes WHERE id = $1', [req.params.id]);
+    const cafe = await db.oneOrNone<Cafe>(
+      `SELECT * FROM cafes WHERE id = $1 AND publication_status = 'published'`,
+      [req.params.id]
+    );
     if (!cafe) {
       res.status(404).json({ error: 'Cafe not found' });
       return;
@@ -101,7 +103,7 @@ export async function getCafeAvailability(req: Request, res: Response): Promise<
 
     // ── Fetch cafe to get total_slots ─────────────────
     const cafe = await db.oneOrNone<Cafe>(
-      'SELECT * FROM cafes WHERE id = $1',
+      `SELECT * FROM cafes WHERE id = $1 AND publication_status = 'published'`,
       [id]
     );
 
@@ -129,13 +131,17 @@ export async function getCafeAvailability(req: Request, res: Response): Promise<
       [id, date]
     );
 
-    const slots: AvailabilitySlot[] = rows.map((row) => ({
-      hour: Number(row.hour),
-      available: Math.max(0, cafe.total_slots - Number(row.booked_seats)),
-      total: cafe.total_slots,
-    }));
+    const weekdayIndex = new Date(`${date}T12:00:00Z`).getUTCDay();
+    const day = WEEKDAYS[(weekdayIndex + 6) % 7];
+    const slots: AvailabilitySlot[] = rows
+      .filter((row) => isCafeOpenForRange(cafe.opening_hours, date, Number(row.hour), Number(row.hour) + 1))
+      .map((row) => ({
+        hour: Number(row.hour),
+        available: Math.max(0, cafe.total_slots - Number(row.booked_seats)),
+        total: cafe.total_slots,
+      }));
 
-    res.json({ cafe_id: id, date, slots });
+    res.json({ cafe_id: id, date, day, slots });
   } catch (error) {
     console.error('Error fetching availability:', error);
     res.status(500).json({ error: 'Failed to fetch availability' });

@@ -10,6 +10,8 @@ import cafeManagementRoutes from './routes/cafeManagementRoutes';
 import ownerApplicationRoutes from './routes/ownerApplicationRoutes';
 import adminRoutes from './routes/adminRoutes';
 import googlePlacesRoutes from './routes/googlePlacesRoutes';
+import cafeRevisionRoutes from './routes/cafeRevisionRoutes';
+import homeRoutes from './routes/homeRoutes';
 import { getLocalIPv4 } from './utils/network';
 
 const app = express();
@@ -26,6 +28,8 @@ app.use('/api/bookings', bookingRoutes);
 app.use('/api/owner-applications', ownerApplicationRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/google-places', googlePlacesRoutes);
+app.use('/api/cafe-revisions', cafeRevisionRoutes);
+app.use('/api/home', homeRoutes);
 
 // ── Health check ─────────────────────────────────────
 app.get('/api/health', (_req, res) => {

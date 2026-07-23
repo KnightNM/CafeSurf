@@ -2,59 +2,89 @@ import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import {
   createCafeApi,
+  createCafeRevisionApi,
   deleteCafeApi,
   deleteCafeCoverApi,
   fetchCafeBookings,
+  fetchMyCafeRevisions,
   fetchMyCafes,
+  submitCafeRevisionApi,
   updateBookingStatusApi,
   updateCafeApi,
+  updateCafeRevisionApi,
   uploadCafeCoverApi,
+  uploadCafeRevisionCoverApi,
+  withdrawCafeRevisionApi,
 } from './api';
+import CafeProfileForm, { createEmptyProfile } from './components/CafeProfileForm';
 import WorkspaceCover from './components/WorkspaceCover';
-import GooglePlaceAutocomplete from './components/GooglePlaceAutocomplete';
 import { hourLabel } from './lib/format';
-import type { Cafe, CafeBooking, CreateCafeRequest } from './types';
+import type { Cafe, CafeBooking, CafeRevision, CreateCafeRequest } from './types';
 
-interface CafeOwnerDashboardProps {
-  token: string;
-  userRole: string;
+interface CafeOwnerDashboardProps { token: string; userRole: string }
+
+function profileFromCafe(cafe: Cafe): CreateCafeRequest {
+  return {
+    name: cafe.name,
+    area: cafe.area,
+    latitude: Number(cafe.latitude),
+    longitude: Number(cafe.longitude),
+    hourly_rate: cafe.hourly_rate,
+    total_slots: cafe.total_slots,
+    has_generator: cafe.has_generator,
+    wifi_speed_mbps: cafe.wifi_speed_mbps,
+    google_place_id: cafe.google_place_id,
+    description: cafe.description,
+    contact_phone: cafe.contact_phone,
+    contact_email: cafe.contact_email,
+    website_url: cafe.website_url,
+    amenities: cafe.amenities,
+    opening_hours: cafe.opening_hours,
+    house_rules: cafe.house_rules,
+    access_instructions: cafe.access_instructions,
+    remove_cover: false,
+  };
 }
-
-const EMPTY_FORM: CreateCafeRequest = {
-  name: '',
-  area: '',
-  latitude: 0,
-  longitude: 0,
-  hourly_rate: 0,
-  total_slots: 0,
-  has_generator: false,
-  wifi_speed_mbps: 50,
-  google_place_id: null,
-};
 
 export default function CafeOwnerDashboard({ token, userRole }: CafeOwnerDashboardProps) {
   const location = useLocation();
   const navigate = useNavigate();
-  const { id } = useParams();
+  const { id, revisionId } = useParams();
+  const isAdmin = userRole === 'admin';
   const [cafes, setCafes] = useState<Cafe[]>([]);
+  const [revisions, setRevisions] = useState<CafeRevision[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-  const [formData, setFormData] = useState<CreateCafeRequest>(EMPTY_FORM);
+  const [formData, setFormData] = useState<CreateCafeRequest>(createEmptyProfile);
   const [formLoading, setFormLoading] = useState(false);
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [cafeBookings, setCafeBookings] = useState<CafeBooking[]>([]);
   const [bookingsLoading, setBookingsLoading] = useState(false);
+  const [publicationFilter, setPublicationFilter] = useState<'published' | 'archived'>('published');
 
   const isNew = location.pathname.endsWith('/new');
   const isEdit = location.pathname.endsWith('/edit');
   const isBookings = location.pathname.endsWith('/bookings');
   const editingCafe = useMemo(() => cafes.find((cafe) => cafe.id === id) ?? null, [cafes, id]);
+  const editingRevision = useMemo(
+    () => revisions.find((revision) => revision.id === revisionId) ?? null,
+    [revisions, revisionId]
+  );
+  const visibleCafes = useMemo(
+    () => cafes.filter((cafe) => cafe.publication_status === publicationFilter),
+    [cafes, publicationFilter]
+  );
 
-  async function loadCafes() {
+  async function loadData() {
     setLoading(true);
     try {
-      setCafes(await fetchMyCafes(token));
+      const [nextCafes, nextRevisions] = await Promise.all([
+        fetchMyCafes(token),
+        isAdmin ? Promise.resolve([]) : fetchMyCafeRevisions(token),
+      ]);
+      setCafes(nextCafes);
+      setRevisions(nextRevisions);
       setError(null);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'Could not load spaces');
@@ -63,30 +93,17 @@ export default function CafeOwnerDashboard({ token, userRole }: CafeOwnerDashboa
     }
   }
 
-  useEffect(() => { void loadCafes(); }, [token]);
+  useEffect(() => { void loadData(); }, [token, isAdmin]);
 
   useEffect(() => {
     setCoverFile(null);
-    if (isNew) {
-      setFormData(EMPTY_FORM);
-    } else if (isEdit && editingCafe) {
-      setFormData({
-        name: editingCafe.name,
-        area: editingCafe.area,
-        latitude: editingCafe.latitude,
-        longitude: editingCafe.longitude,
-        hourly_rate: editingCafe.hourly_rate,
-        total_slots: editingCafe.total_slots,
-        has_generator: editingCafe.has_generator,
-        wifi_speed_mbps: editingCafe.wifi_speed_mbps,
-        google_place_id: editingCafe.google_place_id,
-      });
-    }
-  }, [isNew, isEdit, editingCafe]);
+    if (isNew) setFormData(createEmptyProfile());
+    else if (editingRevision) setFormData(editingRevision.proposed_data);
+    else if (isEdit && editingCafe) setFormData(profileFromCafe(editingCafe));
+  }, [isNew, isEdit, editingCafe, editingRevision]);
 
   useEffect(() => {
     if (!isBookings || !id) return;
-    setError(null);
     setCafeBookings([]);
     setBookingsLoading(true);
     fetchCafeBookings(token, id)
@@ -95,65 +112,69 @@ export default function CafeOwnerDashboard({ token, userRole }: CafeOwnerDashboa
       .finally(() => setBookingsLoading(false));
   }, [isBookings, id, token]);
 
-  function updateField<K extends keyof CreateCafeRequest>(key: K, value: CreateCafeRequest[K]) {
-    setFormData((current) => ({ ...current, [key]: value }));
-  }
-
-  function chooseCover(file: File | undefined) {
-    if (!file) {
-      setCoverFile(null);
-      return;
-    }
-    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
-      setError('Cover image must be JPEG, PNG, or WebP.');
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      setError('Cover image must be no larger than 5 MB.');
-      return;
-    }
+  function chooseCover(file?: File) {
+    if (!file) return setCoverFile(null);
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) return setError('Cover must be JPEG, PNG, or WebP.');
+    if (file.size > 5 * 1024 * 1024) return setError('Cover must be no larger than 5 MB.');
     setCoverFile(file);
     setError(null);
   }
 
-  async function saveCafe(event: React.FormEvent) {
-    event.preventDefault();
+  async function saveProfile(submit: boolean) {
     setFormLoading(true);
     setError(null);
     try {
-      let saved = editingCafe
-        ? await updateCafeApi(token, editingCafe.id, formData)
-        : await createCafeApi(token, formData);
-      if (coverFile) saved = await uploadCafeCoverApi(token, saved.id, coverFile);
-      setNotice(`${saved.name} ${editingCafe ? 'updated' : 'created'} successfully.`);
-      await loadCafes();
+      if (isAdmin) {
+        let saved = editingCafe
+          ? await updateCafeApi(token, editingCafe.id, formData)
+          : await createCafeApi(token, formData);
+        if (coverFile) saved = await uploadCafeCoverApi(token, saved.id, coverFile);
+        setNotice(`${saved.name} published immediately.`);
+      } else {
+        let revision = editingRevision
+          ? await updateCafeRevisionApi(token, editingRevision.id, formData)
+          : await createCafeRevisionApi(token, editingCafe ? 'update' : 'create', formData, editingCafe?.id);
+        if (coverFile) revision = await uploadCafeRevisionCoverApi(token, revision.id, coverFile);
+        if (submit) revision = await submitCafeRevisionApi(token, revision.id);
+        setNotice(submit ? 'Submitted for admin approval.' : 'Draft saved. It is not public yet.');
+      }
+      await loadData();
       navigate('/owner/cafes');
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Could not save space');
+      setError(caught instanceof Error ? caught.message : 'Could not save café profile');
     } finally {
       setFormLoading(false);
     }
   }
 
-  async function removeCover() {
-    if (!editingCafe) return;
+  async function requestArchive(cafe: Cafe) {
+    const prompt = isAdmin
+      ? `Archive "${cafe.name}"? Future active bookings will be cancelled, but history will remain.`
+      : `Submit a removal request for "${cafe.name}"? It stays public until an admin approves.`;
+    if (!window.confirm(prompt)) return;
     try {
-      await deleteCafeCoverApi(token, editingCafe.id);
-      setNotice('Cover image removed. The abstract cover is active.');
-      await loadCafes();
+      if (isAdmin) {
+        await deleteCafeApi(token, cafe.id);
+        setNotice(`${cafe.name} archived.`);
+      } else {
+        const revision = await createCafeRevisionApi(token, 'archive', profileFromCafe(cafe), cafe.id);
+        await submitCafeRevisionApi(token, revision.id);
+        setNotice('Removal request submitted.');
+      }
+      await loadData();
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Could not remove cover');
+      setError(caught instanceof Error ? caught.message : 'Could not submit removal request');
     }
   }
 
-  async function removeCafe(cafe: Cafe) {
-    if (!window.confirm(`Delete "${cafe.name}" and all its bookings?`)) return;
+  async function withdraw(revision: CafeRevision) {
+    if (!window.confirm('Withdraw this revision? The live café will not change.')) return;
     try {
-      await deleteCafeApi(token, cafe.id);
-      setNotice(`${cafe.name} deleted.`);
-      await loadCafes();
+      await withdrawCafeRevisionApi(token, revision.id);
+      setNotice('Revision withdrawn.');
+      await loadData();
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'Could not delete space');
+      setError(caught instanceof Error ? caught.message : 'Could not withdraw revision');
     }
   }
 
@@ -169,7 +190,7 @@ export default function CafeOwnerDashboard({ token, userRole }: CafeOwnerDashboa
   }
 
   const feedback = (error || notice) && (
-    <div className={`toast ${error ? 'error' : ''}`}>
+    <div className={`toast ${error ? 'error' : ''}`} role={error ? 'alert' : 'status'}>
       <span>{error ?? notice}</span>
       <button onClick={() => { setError(null); setNotice(null); }}>Dismiss</button>
     </div>
@@ -183,111 +204,74 @@ export default function CafeOwnerDashboard({ token, userRole }: CafeOwnerDashboa
           <div><p className="kicker">BOOKING OPERATIONS</p><h2>{editingCafe?.name ?? 'Workspace bookings'}</h2></div>
           <button className="ghostButton" onClick={() => navigate('/owner/cafes')}>← Back</button>
         </div>
-        {error ? null : bookingsLoading ? <div className="emptyState">Loading bookings…</div> : !cafeBookings.length ? (
+        {editingCafe?.publication_status === 'archived' && (
+          <div className="notice">This café is archived. Booking history is read-only.</div>
+        )}
+        {bookingsLoading ? <div className="emptyState">Loading bookings…</div> : !cafeBookings.length ? (
           <div className="emptyState"><h3>No booking requests yet.</h3></div>
         ) : (
-          <div className="bookingsTableWrap">
-            <table className="bookingsTable">
-              <thead><tr><th>Customer</th><th>Date</th><th>Time</th><th>Team</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead>
-              <tbody>
-                {cafeBookings.map((booking) => (
-                  <tr key={booking.id}>
-                    <td><strong>{booking.user_name}</strong><br /><small>{booking.user_email}</small></td>
-                    <td>{booking.date}</td>
-                    <td>{hourLabel(booking.start_time)}–{hourLabel(booking.end_time)}</td>
-                    <td>{booking.team_size}</td>
-                    <td>LKR {booking.total_price.toLocaleString()}</td>
-                    <td><span className={`statusPill ${booking.status}`}>{booking.status.replace('_', ' ')}</span></td>
-                    <td>
-                      {booking.status === 'pending' && (
-                        <div className="headerActions">
-                          <button className="primaryButton" onClick={() => void updateBooking(booking.id, 'confirmed')}>Confirm</button>
-                          <button className="dangerButton" onClick={() => void updateBooking(booking.id, 'rejected')}>Reject</button>
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <div className="bookingsTableWrap"><table className="bookingsTable">
+            <thead><tr><th>Customer</th><th>Date</th><th>Time</th><th>Team</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody>{cafeBookings.map((booking) => (
+              <tr key={booking.id}>
+                <td><strong>{booking.user_name}</strong><br /><small>{booking.user_email}</small></td>
+                <td>{booking.date}</td><td>{hourLabel(booking.start_time)}–{hourLabel(booking.end_time)}</td>
+                <td>{booking.team_size}</td><td>LKR {booking.total_price.toLocaleString()}</td>
+                <td><span className={`statusPill ${booking.status}`}>{booking.status.replace('_', ' ')}</span></td>
+                <td>{booking.status === 'pending' && editingCafe?.publication_status !== 'archived' && <div className="headerActions">
+                  <button className="primaryButton" onClick={() => void updateBooking(booking.id, 'confirmed')}>Confirm</button>
+                  <button className="dangerButton" onClick={() => void updateBooking(booking.id, 'rejected')}>Reject</button>
+                </div>}</td>
+              </tr>
+            ))}</tbody>
+          </table></div>
         )}
       </section>
     );
   }
 
   if (isNew || isEdit) {
-    const coverCafe = editingCafe ?? {
-      id: 'preview',
-      owner_id: null,
-      name: formData.name || 'New workspace',
-      area: formData.area || 'Sri Lanka',
-      latitude: formData.latitude,
-      longitude: formData.longitude,
-      hourly_rate: formData.hourly_rate,
-      total_slots: formData.total_slots || 8,
-      has_generator: formData.has_generator,
-      wifi_speed_mbps: formData.wifi_speed_mbps,
-      google_place_id: formData.google_place_id ?? null,
-      google_maps_url: null,
-      cover_image_path: null,
-      cover_image_url: null,
-    } as Cafe;
-
+    const title = editingCafe?.name || editingRevision?.proposed_data.name || 'Add a space';
     return (
       <section className="cafeFormSection">
         {feedback}
         <div className="sectionHeader">
-          <div><p className="kicker">{editingCafe ? 'EDIT WORKSPACE' : 'NEW WORKSPACE'}</p><h2>{editingCafe?.name ?? 'Add a space.'}</h2></div>
+          <div>
+            <p className="kicker">{isAdmin ? 'IMMEDIATE PUBLISHING' : `OWNER ${editingRevision?.status ?? 'DRAFT'}`}</p>
+            <h2>{title}</h2>
+            <p>{isAdmin ? 'Saving changes updates the customer-facing profile immediately.' : 'Save a private draft or submit it for admin approval.'}</p>
+          </div>
           <button className="ghostButton" onClick={() => navigate('/owner/cafes')}>← Back</button>
         </div>
-        <form className="cafeForm" onSubmit={(event) => void saveCafe(event)}>
-          <GooglePlaceAutocomplete
-            token={token}
-            value={formData.name}
-            linkedPlaceId={formData.google_place_id}
-            onInputChange={(value) => setFormData((current) => ({
-              ...current,
-              name: value,
-              google_place_id: null,
-              google_session_token: undefined,
-            }))}
-            onSelect={(suggestion, sessionToken) => setFormData((current) => ({
-              ...current,
-              name: suggestion.name,
-              area: suggestion.address,
-              google_place_id: suggestion.place_id,
-              google_session_token: sessionToken,
-            }))}
-          />
-          {editingCafe?.google_maps_url && formData.google_place_id && (
-            <a className="googleMapsAdminLink" href={editingCafe.google_maps_url} target="_blank" rel="noreferrer">
-              Open the currently linked location on Google Maps ↗
-            </a>
-          )}
+        {editingRevision?.status === 'rejected' && editingRevision.review_note && (
+          <div className="notice noticeError"><strong>Admin review:</strong> {editingRevision.review_note}</div>
+        )}
+        <form className="cafeForm" onSubmit={(event) => { event.preventDefault(); void saveProfile(true); }}>
+          <CafeProfileForm token={token} value={formData} onChange={setFormData} requireGoogle={!editingCafe && !editingRevision?.cafe_id} />
           <div className="coverField">
-            <WorkspaceCover cafe={coverCafe} />
             <div className="coverFieldActions">
-              <strong>Optional workspace cover</strong>
-              <p>JPEG, PNG, or WebP up to 5 MB. Without one, CafeSurf creates the branded abstract cover shown here.</p>
+              <strong>{isAdmin ? 'Public cover image' : 'Proposed cover image'}</strong>
+              <p>{isAdmin ? 'This replaces the public cover immediately.' : 'This remains private until the revision is approved.'}</p>
+              {editingRevision?.proposed_cover_preview_url && <img className="revisionCoverPreview" src={editingRevision.proposed_cover_preview_url} alt="Proposed cover" />}
               <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => chooseCover(event.target.files?.[0])} />
-              {coverFile && <small>Ready to upload: {coverFile.name}</small>}
-              {editingCafe?.cover_image_url && <button className="dangerButton" type="button" onClick={() => void removeCover()}>Remove current cover</button>}
+              {coverFile && <small>Ready: {coverFile.name}</small>}
+              {!isAdmin && (editingRevision?.live_cafe?.cover_image_url || editingCafe?.cover_image_url) && (
+                <label className="filterToggle">
+                  <input type="checkbox" checked={Boolean(formData.remove_cover)} onChange={(event) => setFormData((current) => ({ ...current, remove_cover: event.target.checked }))} />
+                  <span>Remove the current public cover when approved</span>
+                </label>
+              )}
+              {isAdmin && editingCafe?.cover_image_url && (
+                <button className="dangerButton" type="button" onClick={() => void deleteCafeCoverApi(token, editingCafe.id).then(loadData)}>Remove public cover</button>
+              )}
             </div>
-          </div>
-          <div className="formGrid">
-            <label>Workspace name<input value={formData.name} onChange={(event) => updateField('name', event.target.value)} required readOnly={Boolean(formData.google_place_id)} /></label>
-            <label>Area or address<input value={formData.area} onChange={(event) => updateField('area', event.target.value)} required readOnly={Boolean(formData.google_place_id)} /></label>
-            <label>Latitude<input type="number" step="any" value={formData.latitude || ''} onChange={(event) => updateField('latitude', Number(event.target.value))} required={!formData.google_place_id} readOnly={Boolean(formData.google_place_id)} placeholder={formData.google_place_id ? 'Verified when saved' : ''} /></label>
-            <label>Longitude<input type="number" step="any" value={formData.longitude || ''} onChange={(event) => updateField('longitude', Number(event.target.value))} required={!formData.google_place_id} readOnly={Boolean(formData.google_place_id)} placeholder={formData.google_place_id ? 'Verified when saved' : ''} /></label>
-            <label>Rate per seat / hour (LKR)<input type="number" min="1" value={formData.hourly_rate || ''} onChange={(event) => updateField('hourly_rate', Number(event.target.value))} required /></label>
-            <label>Total seats<input type="number" min="1" value={formData.total_slots || ''} onChange={(event) => updateField('total_slots', Number(event.target.value))} required /></label>
-            <label>Wi‑Fi speed (Mbps)<input type="number" min="0" value={formData.wifi_speed_mbps || ''} onChange={(event) => updateField('wifi_speed_mbps', Number(event.target.value))} /></label>
-            <label className="filterToggle"><input type="checkbox" checked={formData.has_generator} onChange={(event) => updateField('has_generator', event.target.checked)} /><span>Backup power available</span></label>
           </div>
           <div className="formActions">
             <button type="button" className="ghostButton" onClick={() => navigate('/owner/cafes')}>Cancel</button>
-            <button className="primaryButton" disabled={formLoading}>{formLoading ? 'Saving…' : editingCafe ? 'Update workspace' : 'Create workspace'}</button>
+            {!isAdmin && <button type="button" className="ghostButton" disabled={formLoading} onClick={() => void saveProfile(false)}>Save draft</button>}
+            <button className="primaryButton" disabled={formLoading || (!formData.google_place_id && !editingCafe && !editingRevision?.cafe_id)}>
+              {formLoading ? 'Saving…' : isAdmin ? 'Publish changes' : 'Submit for approval'}
+            </button>
           </div>
         </form>
       </section>
@@ -298,36 +282,60 @@ export default function CafeOwnerDashboard({ token, userRole }: CafeOwnerDashboa
     <section className="dashboardPane">
       {feedback}
       <div className="sectionHeader">
-        <div><p className="kicker">{userRole === 'admin' ? 'ALL PARTNER SPACES' : 'YOUR SPACES'}</p><h2>{loading ? 'Loading…' : `${cafes.length} workspace${cafes.length === 1 ? '' : 's'}.`}</h2></div>
+        <div>
+          <p className="kicker">{isAdmin ? 'ALL CAFÉ PROFILES' : 'YOUR CAFÉ PROFILES'}</p>
+          <h2>{loading ? 'Loading…' : `${cafes.length} live · ${revisions.filter((item) => ['draft', 'pending', 'rejected'].includes(item.status)).length} in progress`}</h2>
+        </div>
         <div className="headerActions">
-          <button className="ghostButton" onClick={() => void loadCafes()}>Refresh</button>
-          <button className="addButton" onClick={() => navigate('/owner/cafes/new')}>+ Add workspace</button>
+          <div className="statusFilters" aria-label="Café publication filter">
+            <button className={publicationFilter === 'published' ? 'active' : ''} onClick={() => setPublicationFilter('published')}>Published</button>
+            <button className={publicationFilter === 'archived' ? 'active' : ''} onClick={() => setPublicationFilter('archived')}>Archived</button>
+          </div>
+          <button className="ghostButton" onClick={() => void loadData()}>Refresh</button>
+          <button className="addButton" onClick={() => navigate('/owner/cafes/new')}>+ Add café</button>
         </div>
       </div>
-      {loading ? <div className="emptyState">Loading spaces…</div> : !cafes.length ? (
-        <div className="emptyState"><h3>No spaces yet.</h3><p>Add your first team-ready workspace.</p></div>
-      ) : (
-        <div className="manageCafeList">
-          {cafes.map((cafe) => (
-            <article className="cafeManageCard" key={cafe.id}>
-              <WorkspaceCover cafe={cafe} />
-              <div className="cafeManageInfo">
-                <p className="kicker">{cafe.area}</p>
-                <h3>{cafe.name}</h3>
-                <div className="workspaceMetrics">
-                  <span>LKR {cafe.hourly_rate}/seat/hr</span>
-                  <span>{cafe.total_slots} seats</span>
-                  <span>{cafe.wifi_speed_mbps} Mbps</span>
-                </div>
-              </div>
-              <div className="cafeManageActions">
-                {cafe.google_maps_url && <a className="googleMapsAdminLink" href={cafe.google_maps_url} target="_blank" rel="noreferrer">Google Maps ↗</a>}
-                <button className="primaryButton" onClick={() => navigate(`/owner/cafes/${cafe.id}/bookings`)}>Bookings</button>
-                <button className="ghostButton" onClick={() => navigate(`/owner/cafes/${cafe.id}/edit`)}>Edit</button>
-                <button className="dangerButton" onClick={() => void removeCafe(cafe)}>Delete</button>
+
+      {!isAdmin && revisions.length > 0 && (
+        <div className="revisionList">
+          <h3>Drafts and submissions</h3>
+          {revisions.filter((item) => item.status !== 'approved' && item.status !== 'withdrawn').map((revision) => (
+            <article className="revisionCard" key={revision.id}>
+              <div><span className={`statusPill ${revision.status}`}>{revision.status}</span><strong>{revision.proposed_data.name || 'New café'}</strong><small>{revision.action} · updated {new Date(revision.updated_at).toLocaleDateString()}</small></div>
+              {revision.review_note && <p>{revision.review_note}</p>}
+              <div className="headerActions">
+                {revision.action !== 'archive' && <button className="ghostButton" onClick={() => navigate(`/owner/revisions/${revision.id}/edit`)}>Edit</button>}
+                {['draft', 'pending'].includes(revision.status) && <button className="dangerButton" onClick={() => void withdraw(revision)}>Withdraw</button>}
               </div>
             </article>
           ))}
+        </div>
+      )}
+
+      {loading ? <div className="emptyState">Loading spaces…</div> : !visibleCafes.length ? (
+        <div className="emptyState"><h3>No {publicationFilter} cafés.</h3><p>{publicationFilter === 'published' ? 'Create a full profile to begin.' : 'Archived cafés remain here with read-only history.'}</p></div>
+      ) : (
+        <div className="manageCafeList">
+          {visibleCafes.map((cafe) => {
+            const openRevision = revisions.find((revision) => revision.cafe_id === cafe.id && ['draft', 'pending', 'rejected'].includes(revision.status));
+            return (
+              <article className={`cafeManageCard ${cafe.publication_status}`} key={cafe.id}>
+                <WorkspaceCover cafe={cafe} />
+                <div className="cafeManageInfo">
+                  <p className="kicker">{cafe.publication_status} · VERSION {cafe.version}</p>
+                  <h3>{cafe.name}</h3><p>{cafe.area}</p>
+                  <div className="workspaceMetrics"><span>LKR {cafe.hourly_rate}/seat/hr</span><span>{cafe.total_slots} seats</span><span>{cafe.wifi_speed_mbps} Mbps</span></div>
+                  {openRevision && <span className={`statusPill ${openRevision.status}`}>{openRevision.status} {openRevision.action}</span>}
+                </div>
+                <div className="cafeManageActions">
+                  {cafe.google_maps_url && <a className="googleMapsAdminLink" href={cafe.google_maps_url} target="_blank" rel="noreferrer">Google Maps ↗</a>}
+                  <button className="primaryButton" onClick={() => navigate(`/owner/cafes/${cafe.id}/bookings`)}>Bookings</button>
+                  <button className="ghostButton" disabled={cafe.publication_status === 'archived'} onClick={() => navigate(openRevision ? `/owner/revisions/${openRevision.id}/edit` : `/owner/cafes/${cafe.id}/edit`)}>Edit profile</button>
+                  <button className="dangerButton" disabled={Boolean(openRevision) || cafe.publication_status === 'archived'} onClick={() => void requestArchive(cafe)}>{isAdmin ? 'Archive' : 'Request removal'}</button>
+                </div>
+              </article>
+            );
+          })}
         </div>
       )}
     </section>

@@ -67,6 +67,11 @@ seat-based `team_size` bookings, optional café cover paths, and the public-read
 `cafe-covers` Storage bucket. The bucket accepts JPEG, PNG, and WebP objects up
 to 5 MB and has no anonymous write policy.
 
+Migration `005_cafe_profiles_and_revisions.sql` adds versioned full café profiles,
+weekly CafeSurf booking hours, publication state, cancellation reasons, the
+owner/admin approval workflow, and the private `cafe-revision-covers` bucket.
+Existing cafés become published version `1` with 24-hour schedules.
+
 ## First administrator
 
 After the migration and SMTP configuration:
@@ -92,15 +97,41 @@ always creates a `customer`; role metadata from signup is ignored.
 
 ## Café cover uploads
 
-Authenticated owners and administrators use:
+Administrators use the immediate-publication cover endpoints:
 
 - `POST /api/cafes/management/:id/cover-image/upload-url`
 - `PUT /api/cafes/management/:id/cover-image`
 - `DELETE /api/cafes/management/:id/cover-image`
 
-Express checks café ownership, validates file type and size, issues the signed
-upload credentials, and verifies the stored object before attaching it. Replaced
-and deleted covers are removed from Storage.
+Owners use revision-scoped equivalents:
+
+- `POST /api/cafe-revisions/:id/cover-image/upload-url`
+- `PUT /api/cafe-revisions/:id/cover-image`
+- `DELETE /api/cafe-revisions/:id/cover-image`
+
+Draft images remain private. Approval promotes the selected image; rejection and
+withdrawal clean it up. Admin cover changes publish immediately and create audit rows.
+
+## Café profile approval
+
+Owner endpoints:
+
+- `POST /api/cafe-revisions`
+- `GET /api/cafe-revisions/mine`
+- `GET /api/cafe-revisions/:id`
+- `PUT /api/cafe-revisions/:id`
+- `POST /api/cafe-revisions/:id/submit`
+- `POST /api/cafe-revisions/:id/withdraw`
+
+Admin endpoints:
+
+- `GET /api/admin/cafe-revisions?status=pending|approved|rejected`
+- `PATCH /api/admin/cafe-revisions/:id`
+
+Approval locks the revision and café, checks the base version, publishes the full
+snapshot, increments the live version, and records the reviewer. Stale drafts
+return `409`. Archive approval unpublishes the café and cancels future active
+bookings with a reason while preserving every booking row.
 
 ## Owner applications
 

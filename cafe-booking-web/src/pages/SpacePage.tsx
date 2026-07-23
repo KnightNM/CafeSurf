@@ -60,7 +60,7 @@ export default function SpacePage({
   }, [id, date]);
 
   useEffect(() => {
-    if (!token || !cafe?.google_place_id) {
+    if (!cafe?.google_place_id) {
       setGooglePlace(null);
       return;
     }
@@ -153,7 +153,7 @@ export default function SpacePage({
           <div className="spaceHeroCopy">
             <p className="kicker">{cafe.area} · TEAM-READY SPACE</p>
             <h1>{cafe.name}</h1>
-            <p>Flexible seating for solo focus and small-group work, with the practical details visible before you book.</p>
+            <p>{cafe.description || 'Flexible seating for solo focus and small-group work, with the practical details visible before you book.'}</p>
             <div className="featurePills">
               <span>{cafe.total_slots} seats</span>
               <span>{cafe.wifi_speed_mbps} Mbps Wi‑Fi</span>
@@ -184,7 +184,7 @@ export default function SpacePage({
               </div>
             ) : (
               <p className="googlePlaceSignIn">
-                {user ? 'Live Google details are temporarily unavailable.' : 'Sign in to load current Google place details.'}
+                Live Google details are temporarily unavailable.
               </p>
             )}
             {googlePlace?.opening_hours.length ? (
@@ -198,6 +198,41 @@ export default function SpacePage({
             <small className="googleAttribution">Location details provided by Google Maps</small>
           </section>
         )}
+
+        <section className="profileDetailsGrid">
+          <article>
+            <p className="kicker">CAFESURF OPERATING HOURS</p>
+            <h2>When you can book.</h2>
+            <div className="publicHours">
+              {Object.entries(cafe.opening_hours).map(([day, schedule]) => (
+                <div key={day}><strong>{day}</strong><span>{schedule.closed ? 'Closed' : `${hourLabel(schedule.open)}–${hourLabel(schedule.close)}`}</span></div>
+              ))}
+            </div>
+          </article>
+          <article>
+            <p className="kicker">AMENITIES</p>
+            <h2>Workspace details.</h2>
+            <div className="featurePills">
+              {cafe.amenities.length ? cafe.amenities.map((amenity) => <span key={amenity}>{amenity.replace(/_/g, ' ')}</span>) : <span>No additional amenities listed</span>}
+            </div>
+          </article>
+          <article>
+            <p className="kicker">CONTACT</p>
+            <h2>Reach the café.</h2>
+            <div className="contactStack">
+              {cafe.contact_phone && <a href={`tel:${cafe.contact_phone}`}>{cafe.contact_phone}</a>}
+              {cafe.contact_email && <a href={`mailto:${cafe.contact_email}`}>{cafe.contact_email}</a>}
+              {cafe.website_url && <a href={cafe.website_url} target="_blank" rel="noreferrer">Website ↗</a>}
+              {!cafe.contact_phone && !cafe.contact_email && !cafe.website_url && <span>No contact details listed.</span>}
+            </div>
+          </article>
+          <article>
+            <p className="kicker">BEFORE YOU ARRIVE</p>
+            <h2>Rules and access.</h2>
+            <h3>House rules</h3><p>{cafe.house_rules || 'No additional house rules listed.'}</p>
+            <h3>Access instructions</h3><p>{cafe.access_instructions || 'Ask the café team for the CafeSurf workspace when you arrive.'}</p>
+          </article>
+        </section>
 
         <section className="bookingComposer">
           <div className="composerHeader">

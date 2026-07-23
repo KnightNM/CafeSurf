@@ -2,9 +2,11 @@ import { useEffect, useState, type ReactNode } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { Navigate, Route, Routes, useNavigate } from 'react-router-dom';
 import AdminOwnerApplications from './AdminOwnerApplications';
+import AdminCafeRevisions from './AdminCafeRevisions';
 import Auth, { type AuthMode } from './Auth';
 import CafeOwnerDashboard from './CafeOwnerDashboard';
 import OperationsShell from './components/OperationsShell';
+import HashScrollManager from './components/HashScrollManager';
 import OwnerApplicationView from './OwnerApplicationView';
 import BookingsPage from './pages/BookingsPage';
 import HomePage from './pages/HomePage';
@@ -119,9 +121,10 @@ export default function App() {
 
   return (
     <>
+      <HashScrollManager />
       {profileError && <div className="globalError" role="alert">{profileError}</div>}
       <Routes>
-        <Route path="/" element={<HomePage user={user} onAuth={openAuth} onLogout={() => void logout()} />} />
+        <Route path="/" element={<HomePage user={user} token={token} onAuth={openAuth} onLogout={() => void logout()} />} />
         <Route path="/spaces/:id" element={
           <SpacePage
             user={user}
@@ -146,7 +149,7 @@ export default function App() {
             ) : null}
           </RequireRole>
         } />
-        {['/owner/cafes', '/owner/cafes/new', '/owner/cafes/:id/edit', '/owner/cafes/:id/bookings'].map((path) => (
+        {['/owner/cafes', '/owner/cafes/new', '/owner/cafes/:id/edit', '/owner/cafes/:id/bookings', '/owner/revisions/:revisionId/edit'].map((path) => (
           <Route path={path} key={path} element={
             <RequireRole ready={authReady} user={user} roles={['cafe_owner', 'admin']} onMissingAuth={openAuth}>
               {user && token ? operations(<CafeOwnerDashboard token={token} userRole={user.role} />) : null}
@@ -156,6 +159,11 @@ export default function App() {
         <Route path="/admin/owner-applications" element={
           <RequireRole ready={authReady} user={user} roles={['admin']} onMissingAuth={openAuth}>
             {user && token ? operations(<AdminOwnerApplications token={token} />) : null}
+          </RequireRole>
+        } />
+        <Route path="/admin/cafe-revisions" element={
+          <RequireRole ready={authReady} user={user} roles={['admin']} onMissingAuth={openAuth}>
+            {user && token ? operations(<AdminCafeRevisions token={token} />) : null}
           </RequireRole>
         } />
         <Route path="/auth/recovery" element={

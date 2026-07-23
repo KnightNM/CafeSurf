@@ -33,7 +33,7 @@ export async function autocompletePlaces(req: Request, res: Response): Promise<v
 export async function cafePlaceDetails(req: Request, res: Response): Promise<void> {
   try {
     const cafe = await db.oneOrNone<Pick<Cafe, 'google_place_id'>>(
-      'SELECT google_place_id FROM cafes WHERE id = $1',
+      `SELECT google_place_id FROM cafes WHERE id = $1 AND publication_status = 'published'`,
       [req.params.cafeId]
     );
     if (!cafe) {

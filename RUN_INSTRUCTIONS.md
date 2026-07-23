@@ -119,6 +119,15 @@ with short-lived signed credentials issued by Express after an ownership check.
 Migration `004` adds an optional, uniquely indexed `cafes.google_place_id`.
 Existing cafés remain valid and can be linked later from the café edit screen.
 
+Migration `005` expands cafés with full profiles, weekly CafeSurf hours,
+publication state, and optimistic versions. It backfills existing cafés as
+published version `1` with 24-hour schedules, adds booking cancellation reasons,
+creates `cafe_revisions`, and creates the private `cafe-revision-covers` bucket.
+Draft images remain private and are promoted only after approval.
+
+Migration `005_cafe_profiles_and_revisions.sql` has been applied to the currently
+configured development Supabase project. Rerunning the migration command is safe.
+
 ## 6. Configure Google Places
 
 In Google Cloud Console:
@@ -138,8 +147,8 @@ The browser never calls Google directly. Express:
 - Uses a UUID session token across autocomplete and the selected Place Details call.
 - Verifies the selected Place ID and obtains authoritative name, address, and
   coordinates when the café is saved.
-- Lets authenticated users request live details only for a Place ID already
-  attached to a CafeSurf café.
+- Lets public visitors request live details only for a Place ID already attached
+  to a published CafeSurf café.
 
 CafeSurf stores only the stable Google Place ID. Other Google details are fetched
 when displayed rather than persisted. Keep the Google Maps attribution visible,
@@ -207,6 +216,8 @@ Main browser routes:
 /owner/cafes/new
 /owner/cafes/:id/edit
 /owner/cafes/:id/bookings
+/owner/revisions/:revisionId/edit
+/admin/cafe-revisions
 /admin/owner-applications
 /auth/recovery
 ```
@@ -229,6 +240,12 @@ or reject it. Approval transactionally changes the customer role to `cafe_owner`
 rejection leaves it unchanged. Café owners can manage only their cafés, while
 administrators retain global access.
 
+Owners manage bookings immediately, but new cafés, profile edits, cover changes,
+and removal requests use `/api/cafe-revisions`. Customers continue seeing the
+approved profile while a revision is open. Admin direct edits publish immediately
+and create an approved audit record. CafeSurf weekly hours—not Google hours—
+control availability and booking validation.
+
 ## 11. Verify the complete flow
 
 1. Register a customer with a real email address and confirm it.
@@ -237,16 +254,26 @@ administrators retain global access.
 4. Submit an owner application.
 5. Sign in as the bootstrapped administrator and approve it.
 6. Refresh the applicant view and confirm café-management navigation appears.
-7. Create a café, upload/replace/remove its cover, and manage its bookings as
-   the approved owner.
-8. Confirm customers cannot access owner/admin routes.
-9. Confirm an owner cannot manage another owner's café.
-10. Confirm a public visitor can browse spaces and availability but is asked to
+7. As the owner, create a full café draft, select a verified Google place, set
+   CafeSurf hours, attach a private cover, and submit it.
+8. As admin, compare every changed field in `/admin/cafe-revisions`, approve it,
+   and verify that the café becomes public.
+9. Edit a pending submission, resubmit it, reject it with a note, revise it, and
+   approve it. Also verify withdrawal leaves the live profile unchanged.
+10. Approve a removal request. Verify discovery stops, future active bookings
+    are cancelled with a reason, and booking history remains.
+11. Confirm customers cannot access owner/admin routes.
+12. Confirm an owner cannot revise another owner's café.
+13. Confirm a public visitor can browse spaces and availability but is asked to
     sign in before the final booking confirmation.
-11. As an owner/admin, type a café name, select the correct Google suggestion,
+14. As an owner/admin, type a café name, select the correct Google suggestion,
     and verify that its name, address, and coordinates are populated on save.
-12. As a customer, open that workspace, verify current Google details, and use
-    the Google Maps redirect.
+15. As a public visitor, open that workspace, verify approved profile and live
+    Google details, and use the Google Maps redirect.
+16. Verify homepage and cross-route `Find a space`/`How it works` links focus
+    the correct heading.
+17. Check cinematic desktop chapters and normal mobile/reduced-motion scrolling.
+18. Confirm `/api/home/summary` shows only real, role-safe data or honest empties.
 
 ## 12. Test and build
 

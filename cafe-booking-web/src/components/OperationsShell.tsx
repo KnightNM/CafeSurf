@@ -25,7 +25,10 @@ export default function OperationsShell({
           )}
           {user.role === 'customer' && <NavLink to="/owner/apply">Become an owner</NavLink>}
           {user.role === 'admin' && (
-            <NavLink to="/admin/owner-applications">Owner applications</NavLink>
+            <>
+              <NavLink to="/admin/cafe-revisions">Café approvals</NavLink>
+              <NavLink to="/admin/owner-applications">Owner applications</NavLink>
+            </>
           )}
         </nav>
         <div className="railUser">

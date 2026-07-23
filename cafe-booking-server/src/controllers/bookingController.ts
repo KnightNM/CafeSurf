@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { db, pgp } from '../config/database';
 import { Booking, BookingWithCafe, Cafe, CreateBookingRequest } from '../models/types';
+import { isCafeOpenForRange } from '../services/cafeProfile';
 
 /**
  * POST /api/bookings
@@ -103,6 +104,12 @@ export async function createBooking(req: Request, res: Response): Promise<void> 
 
       if (!cafe) {
         throw { statusCode: 404, message: 'Cafe not found' };
+      }
+      if (cafe.publication_status !== 'published') {
+        throw { statusCode: 409, message: 'This café is not accepting new bookings' };
+      }
+      if (!isCafeOpenForRange(cafe.opening_hours, date, start_time, end_time)) {
+        throw { statusCode: 400, message: 'The requested hours are outside this café’s CafeSurf operating schedule' };
       }
 
       if (teamSize > cafe.total_slots) {
@@ -325,7 +332,7 @@ export async function cancelBooking(req: Request, res: Response): Promise<void> 
     }
 
     const updated = await db.one<BookingWithCafe>(
-      `UPDATE bookings SET status = 'cancelled' WHERE id = $1
+      `UPDATE bookings SET status = 'cancelled', cancellation_reason = 'Cancelled by customer' WHERE id = $1
        RETURNING *,
          (SELECT name FROM cafes WHERE id = cafe_id) AS cafe_name,
          (SELECT area FROM cafes WHERE id = cafe_id) AS cafe_area`,
@@ -367,8 +374,8 @@ export async function updateBookingStatus(req: Request, res: Response): Promise<
       return;
     }
 
-    const booking = await db.oneOrNone<Booking & { owner_id: string | null }>(
-      `SELECT b.*, c.owner_id
+    const booking = await db.oneOrNone<Booking & { owner_id: string | null; publication_status: string }>(
+      `SELECT b.*, c.owner_id, c.publication_status
        FROM bookings b
        JOIN cafes c ON c.id = b.cafe_id
        WHERE b.id = $1`,
@@ -382,6 +389,11 @@ export async function updateBookingStatus(req: Request, res: Response): Promise<
 
     if (requesterRole !== 'admin' && booking.owner_id !== requesterId) {
       res.status(403).json({ error: 'You can only manage bookings for your own cafes' });
+      return;
+    }
+
+    if (booking.publication_status === 'archived') {
+      res.status(409).json({ error: 'Archived café bookings are read-only' });
       return;
     }
 
