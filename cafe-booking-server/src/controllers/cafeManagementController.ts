@@ -453,7 +453,7 @@ export async function getCafeBookings(req: Request, res: Response): Promise<void
     const bookings = await db.any(
       `SELECT b.*, u.name as user_name, u.email as user_email
        FROM bookings b
-       JOIN users u ON u.id::text = b.user_id
+       JOIN public.users u ON u.id = b.user_id
        WHERE b.cafe_id = $1
        ORDER BY b.date DESC, b.start_time DESC`,
       [id]
