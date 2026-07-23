@@ -21,8 +21,6 @@ export default function ScrollChapter({
       const range = Math.max(1, element.offsetHeight - window.innerHeight);
       const progress = Math.min(1, Math.max(0, -rect.top / range));
       element.style.setProperty('--chapter-progress', progress.toFixed(4));
-      const presence = progress < .65 ? 1 : 1 - ((progress - .65) / .35) * .68;
-      element.style.setProperty('--chapter-presence', presence.toFixed(4));
     };
     const schedule = () => {
       if (!frame) frame = window.requestAnimationFrame(update);

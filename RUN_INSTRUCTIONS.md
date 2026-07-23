@@ -128,6 +128,11 @@ Draft images remain private and are promoted only after approval.
 Migration `005_cafe_profiles_and_revisions.sql` has been applied to the currently
 configured development Supabase project. Rerunning the migration command is safe.
 
+Migration `006` changes the café-revision foreign key to `ON DELETE CASCADE`.
+It supports the admin-only permanent-delete veto, which removes the café and all
+associated bookings and revisions after exact-name and final confirmations.
+Archive remains the history-preserving default removal action.
+
 ## 6. Configure Google Places
 
 In Google Cloud Console:
@@ -262,18 +267,21 @@ control availability and booking validation.
    approve it. Also verify withdrawal leaves the live profile unchanged.
 10. Approve a removal request. Verify discovery stops, future active bookings
     are cancelled with a reason, and booking history remains.
-11. Confirm customers cannot access owner/admin routes.
-12. Confirm an owner cannot revise another owner's café.
-13. Confirm a public visitor can browse spaces and availability but is asked to
+11. As admin, permanently delete a test café after typing its exact name. Verify
+    its café row, bookings, revisions, and public/private covers are gone.
+12. Confirm customers cannot access owner/admin routes.
+13. Confirm an owner cannot revise another owner's café.
+14. Confirm a public visitor can browse spaces and availability but is asked to
     sign in before the final booking confirmation.
-14. As an owner/admin, type a café name, select the correct Google suggestion,
+15. As an owner/admin, type a café name, select the correct Google suggestion,
     and verify that its name, address, and coordinates are populated on save.
-15. As a public visitor, open that workspace, verify approved profile and live
+16. As a public visitor, open that workspace, verify approved profile and live
     Google details, and use the Google Maps redirect.
-16. Verify homepage and cross-route `Find a space`/`How it works` links focus
+17. Verify homepage and cross-route `Find a space`/`How it works` links focus
     the correct heading.
-17. Check cinematic desktop chapters and normal mobile/reduced-motion scrolling.
-18. Confirm `/api/home/summary` shows only real, role-safe data or honest empties.
+18. Check short, fully opaque sticky transitions and normal mobile/reduced-motion
+    scrolling.
+19. Confirm `/api/home/summary` shows only real, role-safe data or honest empties.
 
 ## 12. Test and build
 

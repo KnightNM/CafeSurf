@@ -107,6 +107,16 @@
 .ghostButton { color: var(--forest); background: transparent; border: 1px solid var(--line); }
 .primaryButton, .addButton { color: var(--porcelain); background: var(--forest); border: 1px solid var(--forest); }
 .dangerButton { color: var(--danger); background: transparent; border: 1px solid rgba(168,69,55,.32); }
+.vetoButton {
+  min-height: 44px;
+  padding: 0 16px;
+  color: #fff;
+  background: #8f251d;
+  border: 1px solid #8f251d;
+  border-radius: 999px;
+  font-weight: 820;
+}
+.vetoButton:hover { background: #6f1913; border-color: #6f1913; }
 
 .manageCafeList,
 .applicationList,

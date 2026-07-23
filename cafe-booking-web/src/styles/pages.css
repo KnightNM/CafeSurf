@@ -250,9 +250,8 @@
 
 .scrollChapter {
   --chapter-progress: 0;
-  --chapter-presence: 1;
   position: relative;
-  min-height: 145vh;
+  min-height: 112vh;
 }
 
 .scrollChapterStage {
@@ -261,12 +260,11 @@
   display: grid;
   min-height: calc(100vh - 86px);
   align-items: center;
-  opacity: var(--chapter-presence);
   transform:
-    translateY(calc(22px - var(--chapter-progress) * 44px))
-    scale(calc(.975 + var(--chapter-progress) * .025));
+    translateY(calc(10px - var(--chapter-progress) * 18px))
+    scale(calc(.99 + var(--chapter-progress) * .01));
   transform-origin: center;
-  will-change: transform, opacity;
+  will-change: transform;
 }
 
 .scrollChapterStage > section {

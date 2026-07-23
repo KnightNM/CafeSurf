@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { validateCoverUploadRequest } from '../src/controllers/cafeManagementController';
+import {
+  hasExactCafeDeletionConfirmation,
+  validateCoverUploadRequest,
+} from '../src/controllers/cafeManagementController';
 
 describe('cafe cover validation', () => {
   it('accepts supported images under 5 MB', () => {
@@ -24,5 +27,14 @@ describe('cafe cover validation', () => {
       content_type: 'image/png',
       size_bytes: 5 * 1024 * 1024 + 1,
     })).toThrow();
+  });
+});
+
+describe('permanent cafe deletion confirmation', () => {
+  it('requires an exact, case-sensitive cafe name', () => {
+    expect(hasExactCafeDeletionConfirmation('WorkLab Colombo', 'WorkLab Colombo')).toBe(true);
+    expect(hasExactCafeDeletionConfirmation('worklab colombo', 'WorkLab Colombo')).toBe(false);
+    expect(hasExactCafeDeletionConfirmation('WorkLab Colombo ', 'WorkLab Colombo')).toBe(false);
+    expect(hasExactCafeDeletionConfirmation(undefined, 'WorkLab Colombo')).toBe(false);
   });
 });

@@ -5,6 +5,7 @@ import {
   createCafeRevisionApi,
   deleteCafeApi,
   deleteCafeCoverApi,
+  permanentlyDeleteCafeApi,
   fetchCafeBookings,
   fetchMyCafeRevisions,
   fetchMyCafes,
@@ -164,6 +165,28 @@ export default function CafeOwnerDashboard({ token, userRole }: CafeOwnerDashboa
       await loadData();
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'Could not submit removal request');
+    }
+  }
+
+  async function permanentlyRemoveCafe(cafe: Cafe) {
+    const typed = window.prompt(
+      `PERMANENT ADMIN VETO\n\nThis deletes the café, every booking, every revision, and its stored covers.\n\nType the café name exactly to continue:\n${cafe.name}`
+    );
+    if (typed === null) return;
+    if (typed !== cafe.name) {
+      setError('The café name did not match exactly. Nothing was deleted.');
+      return;
+    }
+    if (!window.confirm(
+      `Final warning: permanently delete "${cafe.name}" and all associated data? This cannot be recovered.`
+    )) return;
+
+    try {
+      await permanentlyDeleteCafeApi(token, cafe.id, typed);
+      setNotice(`${cafe.name} and all associated data were permanently deleted.`);
+      await loadData();
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'Could not permanently delete café');
     }
   }
 
@@ -331,7 +354,16 @@ export default function CafeOwnerDashboard({ token, userRole }: CafeOwnerDashboa
                   {cafe.google_maps_url && <a className="googleMapsAdminLink" href={cafe.google_maps_url} target="_blank" rel="noreferrer">Google Maps ↗</a>}
                   <button className="primaryButton" onClick={() => navigate(`/owner/cafes/${cafe.id}/bookings`)}>Bookings</button>
                   <button className="ghostButton" disabled={cafe.publication_status === 'archived'} onClick={() => navigate(openRevision ? `/owner/revisions/${openRevision.id}/edit` : `/owner/cafes/${cafe.id}/edit`)}>Edit profile</button>
-                  <button className="dangerButton" disabled={Boolean(openRevision) || cafe.publication_status === 'archived'} onClick={() => void requestArchive(cafe)}>{isAdmin ? 'Archive' : 'Request removal'}</button>
+                  {isAdmin ? (
+                    <>
+                      {cafe.publication_status === 'published' && (
+                        <button className="dangerButton" disabled={Boolean(openRevision)} onClick={() => void requestArchive(cafe)}>Archive</button>
+                      )}
+                      <button className="vetoButton" onClick={() => void permanentlyRemoveCafe(cafe)}>Delete permanently</button>
+                    </>
+                  ) : (
+                    <button className="dangerButton" disabled={Boolean(openRevision) || cafe.publication_status === 'archived'} onClick={() => void requestArchive(cafe)}>Request removal</button>
+                  )}
                 </div>
               </article>
             );

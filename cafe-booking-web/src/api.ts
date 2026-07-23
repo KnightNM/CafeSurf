@@ -249,6 +249,18 @@ export async function deleteCafeApi(token: string, id: string): Promise<void> {
   );
 }
 
+export async function permanentlyDeleteCafeApi(
+  token: string,
+  id: string,
+  confirmation: string
+): Promise<void> {
+  await request<{ message: string }>(
+    `/api/cafes/management/${id}/permanent`,
+    { method: 'DELETE', body: JSON.stringify({ confirmation }) },
+    token
+  );
+}
+
 export async function fetchCafeBookings(token: string, cafeId: string): Promise<CafeBooking[]> {
   const data = await request<{ bookings: CafeBooking[] }>(
     `/api/cafes/management/${cafeId}/bookings`,
