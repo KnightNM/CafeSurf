@@ -13,6 +13,8 @@ export interface Cafe {
   total_slots: number;
   has_generator: boolean;
   wifi_speed_mbps: number;
+  google_place_id: string | null;
+  google_maps_url: string | null;
   cover_image_path?: string | null;
   cover_image_url: string | null;
   created_at?: string;
@@ -69,6 +71,8 @@ export interface CreateCafeRequest {
   total_slots: number;
   has_generator: boolean;
   wifi_speed_mbps: number;
+  google_place_id?: string | null;
+  google_session_token?: string;
 }
 
 export type UpdateCafeRequest = Partial<CreateCafeRequest>;
@@ -88,6 +92,25 @@ export interface BookingIntent {
 export interface CafeCoverUploadTicket {
   path: string;
   token: string;
+}
+
+export interface GooglePlaceSuggestion {
+  place_id: string;
+  name: string;
+  address: string;
+}
+
+export interface GooglePlaceDetails {
+  place_id: string;
+  display_name: string;
+  formatted_address: string;
+  latitude: number;
+  longitude: number;
+  google_maps_uri: string;
+  business_status: string | null;
+  phone: string | null;
+  website: string | null;
+  opening_hours: string[];
 }
 
 export type OwnerApplicationStatus = 'pending' | 'approved' | 'rejected';

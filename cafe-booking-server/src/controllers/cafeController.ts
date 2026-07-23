@@ -2,11 +2,13 @@ import { Request, Response } from 'express';
 import { db } from '../config/database';
 import { Cafe, AvailabilitySlot } from '../models/types';
 import { getCafeCoverPublicUrl } from '../config/supabase';
+import { buildGoogleMapsUrl } from '../services/googlePlaces';
 
 export function serializeCafe(cafe: Cafe): Cafe {
   return {
     ...cafe,
     cover_image_url: getCafeCoverPublicUrl(cafe.cover_image_path),
+    google_maps_url: buildGoogleMapsUrl(cafe.name, cafe.area, cafe.google_place_id),
   };
 }
 

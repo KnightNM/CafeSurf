@@ -14,6 +14,7 @@ There is no iOS build or release process.
 - Supabase database connection and migration connection strings
 - Supabase project URL, publishable key, and server-only service-role key
 - A Resend account and verified sending domain for production authentication email
+- A Google Cloud project with billing and Places API (New) enabled
 
 ## 2. Create local environment files
 
@@ -78,6 +79,7 @@ SUPABASE_URL=https://PROJECT_REF.supabase.co
 SUPABASE_PUBLISHABLE_KEY=sb_publishable_your_key
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 AUTH_INVITE_REDIRECT_URL=http://localhost:5173
+GOOGLE_MAPS_API_KEY=your_server_side_places_api_key
 
 PORT=3000
 HOST=0.0.0.0
@@ -114,7 +116,37 @@ Migration `003` is additive. It:
 The bucket intentionally has no anonymous write policy. Owners upload directly
 with short-lived signed credentials issued by Express after an ownership check.
 
-## 6. Register the first administrator
+Migration `004` adds an optional, uniquely indexed `cafes.google_place_id`.
+Existing cafés remain valid and can be linked later from the café edit screen.
+
+## 6. Configure Google Places
+
+In Google Cloud Console:
+
+1. Create or select a billing-enabled project.
+2. Enable **Places API (New)**.
+3. Create a separate API key for the Express server.
+4. Restrict the key to **Places API (New)**.
+5. If the production API has a stable outbound IP, add an IP application
+   restriction. Otherwise enforce strict API quotas and monitor usage.
+6. Put the key only in `cafe-booking-server/.env` as
+   `GOOGLE_MAPS_API_KEY`. Never expose it through a `VITE_` variable.
+
+The browser never calls Google directly. Express:
+
+- Requires an owner/admin session for Sri Lanka–restricted autocomplete.
+- Uses a UUID session token across autocomplete and the selected Place Details call.
+- Verifies the selected Place ID and obtains authoritative name, address, and
+  coordinates when the café is saved.
+- Lets authenticated users request live details only for a Place ID already
+  attached to a CafeSurf café.
+
+CafeSurf stores only the stable Google Place ID. Other Google details are fetched
+when displayed rather than persisted. Keep the Google Maps attribution visible,
+maintain public privacy/terms pages, and periodically refresh Place IDs older
+than 12 months.
+
+## 7. Register the first administrator
 
 Configure SMTP first, then run this once with a real email address:
 
@@ -129,7 +161,7 @@ normal web login. The command refuses to run after an administrator exists.
 Normal web registration always creates a customer, even if role metadata is
 supplied to Supabase Auth.
 
-## 7. Configure the frontend
+## 8. Configure the frontend
 
 Set these values in `cafe-booking-web/.env`:
 
@@ -141,7 +173,7 @@ VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_your_key
 
 Only the Supabase publishable key belongs in the frontend.
 
-## 8. Run locally
+## 9. Run locally
 
 Start the backend:
 
@@ -179,7 +211,7 @@ Main browser routes:
 /auth/recovery
 ```
 
-## 9. How authentication and roles work
+## 10. How authentication and roles work
 
 - Supabase stores and automatically refreshes the browser session.
 - The web app sends the access token in `Authorization: Bearer <token>`.
@@ -197,7 +229,7 @@ or reject it. Approval transactionally changes the customer role to `cafe_owner`
 rejection leaves it unchanged. Café owners can manage only their cafés, while
 administrators retain global access.
 
-## 10. Verify the complete flow
+## 11. Verify the complete flow
 
 1. Register a customer with a real email address and confirm it.
 2. Verify login, logout, refresh persistence, forgot-password, and reset-password.
@@ -211,8 +243,12 @@ administrators retain global access.
 9. Confirm an owner cannot manage another owner's café.
 10. Confirm a public visitor can browse spaces and availability but is asked to
     sign in before the final booking confirmation.
+11. As an owner/admin, type a café name, select the correct Google suggestion,
+    and verify that its name, address, and coordinates are populated on save.
+12. As a customer, open that workspace, verify current Google details, and use
+    the Google Maps redirect.
 
-## 11. Test and build
+## 12. Test and build
 
 Backend:
 
@@ -234,7 +270,7 @@ npm run preview
 
 The generated frontend is written to `cafe-booking-web/dist`.
 
-## 12. Production deployment
+## 13. Production deployment
 
 Backend hosting requires:
 
@@ -246,6 +282,7 @@ SUPABASE_URL
 SUPABASE_PUBLISHABLE_KEY
 SUPABASE_SERVICE_ROLE_KEY
 AUTH_INVITE_REDIRECT_URL
+GOOGLE_MAPS_API_KEY
 PORT
 HOST
 ```
@@ -269,6 +306,7 @@ Before launch:
 6. Configure the frontend host to rewrite SPA routes to `index.html`
    (`cafe-booking-web/vercel.json` already handles this on Vercel).
 7. Repeat the complete-flow verification above against production.
+8. Set Google Places quotas/budget alerts and verify the server key restrictions.
 
 ## Troubleshooting
 

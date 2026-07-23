@@ -12,6 +12,8 @@ import type {
   CreateOwnerApplicationRequest,
   User,
   CafeCoverUploadTicket,
+  GooglePlaceDetails,
+  GooglePlaceSuggestion,
 } from './types';
 import { supabase } from './supabase';
 
@@ -78,6 +80,34 @@ export async function fetchAvailability(cafeId: string, date: string): Promise<A
     `/api/cafes/${cafeId}/availability?date=${encodeURIComponent(date)}`
   );
   return data.slots;
+}
+
+export async function autocompleteGooglePlaces(
+  token: string,
+  input: string,
+  sessionToken: string
+): Promise<GooglePlaceSuggestion[]> {
+  const data = await request<{ suggestions: GooglePlaceSuggestion[] }>(
+    '/api/google-places/autocomplete',
+    {
+      method: 'POST',
+      body: JSON.stringify({ input, session_token: sessionToken }),
+    },
+    token
+  );
+  return data.suggestions;
+}
+
+export async function fetchCafeGooglePlace(
+  token: string,
+  cafeId: string
+): Promise<GooglePlaceDetails> {
+  const data = await request<{ place: GooglePlaceDetails }>(
+    `/api/google-places/cafes/${cafeId}`,
+    undefined,
+    token
+  );
+  return data.place;
 }
 
 // ── Booking APIs ───────────────────────────────────

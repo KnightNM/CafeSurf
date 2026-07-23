@@ -36,6 +36,15 @@
     grid-template-columns: 1fr;
   }
 
+  .googlePlacePanel {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+
+  .googlePlaceFacts {
+    justify-content: flex-start;
+  }
+
   .spaceHero .workspaceCoverLarge {
     min-height: 480px;
   }
@@ -310,6 +319,14 @@
 
   .reviewComposer {
     grid-template-columns: 1fr;
+  }
+
+  .googlePlaceSignIn {
+    text-align: left;
+  }
+
+  .googleOpeningHours ul {
+    columns: 1;
   }
 
   .authPanel {

@@ -14,6 +14,8 @@ const cafe: Cafe = {
   total_slots: 8,
   has_generator: true,
   wifi_speed_mbps: 120,
+  google_place_id: null,
+  google_maps_url: null,
   cover_image_url: null,
 };
 

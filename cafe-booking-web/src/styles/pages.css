@@ -535,6 +535,51 @@
   background: var(--paper);
 }
 
+.mapsLinkedBadge {
+  display: inline-flex;
+  margin-top: 8px;
+  color: var(--forest);
+  font-size: .68rem;
+  font-weight: 820;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.googleMapsButton {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  width: fit-content;
+  padding: 0 16px;
+  color: var(--porcelain);
+  background: var(--forest);
+  border-radius: 999px;
+  font-weight: 780;
+}
+
+.googlePlacePanel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, .8fr);
+  gap: 28px;
+  align-items: end;
+  margin-bottom: 28px;
+  padding: clamp(22px, 4vw, 38px);
+  background: rgba(168,184,117,.15);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+}
+
+.googlePlacePanel h2 { margin: 0; color: var(--forest); font-size: clamp(1.8rem, 4vw, 3.2rem); }
+.googlePlacePanel p { color: var(--muted); }
+.googlePlaceFacts { display: flex; flex-wrap: wrap; gap: 9px; justify-content: flex-end; }
+.googlePlaceFacts > * { padding: 9px 12px; color: var(--forest); background: var(--paper); border: 1px solid var(--line); border-radius: 999px; font-size: .78rem; }
+.googlePlacePanel > .googleAttribution { grid-column: 1 / -1; padding: 0; }
+.googlePlaceSignIn { text-align: right; }
+.googleOpeningHours { grid-column: 1 / -1; padding-top: 12px; border-top: 1px solid var(--line); }
+.googleOpeningHours summary { color: var(--forest); font-weight: 800; cursor: pointer; }
+.googleOpeningHours ul { columns: 2; margin: 14px 0 0; padding-left: 18px; color: var(--muted); }
+.googleOpeningHours li { break-inside: avoid; margin-bottom: 6px; }
+
 .spaceHeroCopy h1 {
   margin-bottom: 24px;
   color: var(--forest);

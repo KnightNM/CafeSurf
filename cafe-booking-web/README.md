@@ -12,6 +12,8 @@ React/Vite browser client for the CafeSurf Express API and Supabase Auth.
 - Public café discovery and seat-based availability
 - Team-size booking with per-seat/hour pricing and final confirmation
 - Deterministic abstract café covers plus optional owner-uploaded photography
+- Google Maps–verified café autocomplete for owner/admin forms
+- Customer location details and direct Google Maps redirects
 - Customer owner-application form and status
 - Admin owner-application review
 - Café-owner café, cover image, and booking management
@@ -66,6 +68,11 @@ npm run dev
 The browser uses Supabase only for authentication sessions. It does not read or
 write `public.users`, cafés, bookings, or owner applications directly. All
 application requests go through Express with the current Supabase access token.
+
+Google Places also runs through Express. No Google API key is bundled into the
+Vite application. Owners and administrators receive Sri Lanka–restricted
+autocomplete suggestions; customers can request current details only for a
+Place ID already linked to a CafeSurf café.
 
 To point the web app at a different backend, update `.env` or run:
 

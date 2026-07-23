@@ -15,6 +15,8 @@ café-owner registrations.
 - **Auth email:** Supabase Auth using Resend SMTP in production
 - **Cover images:** Public-read Supabase Storage bucket, with authenticated
   owner uploads signed and verified by Express
+- **Locations:** Google Places API (New) through an authenticated Express proxy;
+  cafés store the stable Place ID and fetch current Google details when needed
 - **Design:** Self-hosted Bricolage Grotesque and DM Sans, responsive routed
   React pages, and lightweight CSS/SVG motion with reduced-motion support
 
@@ -30,7 +32,11 @@ Bearer token.
 - Admins approve or reject owner applications.
 - Approval transactionally changes the applicant's role to `cafe_owner`.
 - Café owners manage only their cafés, cover photos, and their cafés' bookings.
+- Café owners and administrators can find and verify a Sri Lankan café through
+  Google Maps while creating or editing it.
 - Admins have global café, booking, and owner-application access.
+- Customers can view current Google place details and open the café directly in
+  Google Maps.
 
 Rates are shown per seat/hour. A booking total is:
 

@@ -1,5 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cancelBooking, createBooking, fetchMyBookings } from './api';
+import {
+  autocompleteGooglePlaces,
+  cancelBooking,
+  createBooking,
+  fetchCafeGooglePlace,
+  fetchMyBookings,
+} from './api';
 
 afterEach(() => vi.unstubAllGlobals());
 
@@ -37,5 +43,28 @@ describe('authenticated booking API', () => {
     const requestBody = JSON.parse(fetchMock.mock.calls[0][1].body as string);
     expect(requestBody).not.toHaveProperty('user_id');
     expect(requestBody.team_size).toBe(4);
+  });
+});
+
+describe('Google Places API', () => {
+  it('sends authenticated autocomplete sessions through Express', async () => {
+    const fetchMock = mockFetch({ suggestions: [] });
+    await autocompleteGooglePlaces('access-token', 'Cafe Surf', 'session-token');
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'http://127.0.0.1:3000/api/google-places/autocomplete'
+    );
+    const requestBody = JSON.parse(fetchMock.mock.calls[0][1].body as string);
+    expect(requestBody).toEqual({
+      input: 'Cafe Surf',
+      session_token: 'session-token',
+    });
+  });
+
+  it('loads live Google details only through a saved CafeSurf café', async () => {
+    const fetchMock = mockFetch({ place: { place_id: 'google-place-id' } });
+    await fetchCafeGooglePlace('access-token', 'cafe-id');
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      'http://127.0.0.1:3000/api/google-places/cafes/cafe-id'
+    );
   });
 });
