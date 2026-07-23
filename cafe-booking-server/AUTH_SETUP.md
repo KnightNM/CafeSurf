@@ -72,6 +72,11 @@ weekly CafeSurf booking hours, publication state, cancellation reasons, the
 owner/admin approval workflow, and the private `cafe-revision-covers` bucket.
 Existing cafés become published version `1` with 24-hour schedules.
 
+Migration `007_google_profile_import.sql` adds Google import metadata and converts
+weekly hours to minute-accurate multi-period schedules while preserving existing
+availability. The owner/admin Google details endpoint imports supported rich Place
+fields once; Express re-verifies core location data when profiles are saved.
+
 ## First administrator
 
 After the migration and SMTP configuration:

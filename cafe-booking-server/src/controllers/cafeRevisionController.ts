@@ -23,6 +23,7 @@ type RevisionRow = CafeRevision & { live_cafe?: Cafe | null };
 const PROFILE_COLUMNS = [
   'name', 'area', 'latitude', 'longitude', 'hourly_rate', 'total_slots',
   'has_generator', 'wifi_speed_mbps', 'google_place_id', 'description',
+  'google_business_status', 'google_imported_at',
   'contact_phone', 'contact_email', 'website_url', 'amenities', 'opening_hours',
   'house_rules', 'access_instructions',
 ] as const;
@@ -53,6 +54,7 @@ async function resolveProfile(body: Partial<CreateCafeRequest>, requireGoogle: b
     input.latitude = google.latitude;
     input.longitude = google.longitude;
     input.google_place_id = google.place_id;
+    input.google_business_status = google.business_status;
     input.contact_phone ??= google.phone;
     input.website_url ??= google.website;
   }

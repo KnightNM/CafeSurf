@@ -12,6 +12,8 @@ const LABELS: Record<string, string> = {
   has_generator: 'Backup power',
   wifi_speed_mbps: 'Wi‑Fi speed',
   google_place_id: 'Google Place ID',
+  google_business_status: 'Google business status',
+  google_imported_at: 'Google import date',
   description: 'Description',
   contact_phone: 'Contact phone',
   contact_email: 'Contact email',

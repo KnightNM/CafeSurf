@@ -34,16 +34,32 @@ describe('cafe profile validation', () => {
   it('rejects invalid daily ranges', () => {
     expect(() => normalizeOpeningHours({
       ...DEFAULT_OPENING_HOURS,
-      monday: { closed: false, open: 18, close: 9 },
+      monday: { closed: false, periods: [{ open_minute: 1080, close_minute: 540 }] },
     })).toThrow('Invalid opening hours for monday');
   });
 
   it('uses the CafeSurf schedule to validate a booking range', () => {
     const hours = {
       ...DEFAULT_OPENING_HOURS,
-      thursday: { closed: false, open: 8, close: 18 },
+      thursday: {
+        closed: false,
+        periods: [
+          { open_minute: 8 * 60 + 30, close_minute: 12 * 60 },
+          { open_minute: 13 * 60, close_minute: 18 * 60 + 30 },
+        ],
+      },
     };
     expect(isCafeOpenForRange(hours, '2026-07-23', 9, 12)).toBe(true);
+    expect(isCafeOpenForRange(hours, '2026-07-23', 12, 14)).toBe(false);
     expect(isCafeOpenForRange(hours, '2026-07-23', 17, 19)).toBe(false);
+  });
+
+  it('upgrades the legacy one-period schedule shape', () => {
+    const legacy = Object.fromEntries(
+      Object.keys(DEFAULT_OPENING_HOURS).map((day) => [day, { closed: false, open: 8, close: 18 }])
+    );
+    expect(normalizeOpeningHours(legacy).monday.periods).toEqual([
+      { open_minute: 480, close_minute: 1080 },
+    ]);
   });
 });

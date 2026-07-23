@@ -35,6 +35,8 @@ function profileFromCafe(cafe: Cafe): CreateCafeRequest {
     has_generator: cafe.has_generator,
     wifi_speed_mbps: cafe.wifi_speed_mbps,
     google_place_id: cafe.google_place_id,
+    google_business_status: cafe.google_business_status,
+    google_imported_at: cafe.google_imported_at,
     description: cafe.description,
     contact_phone: cafe.contact_phone,
     contact_email: cafe.contact_email,
@@ -270,7 +272,19 @@ export default function CafeOwnerDashboard({ token, userRole }: CafeOwnerDashboa
           <div className="notice noticeError"><strong>Admin review:</strong> {editingRevision.review_note}</div>
         )}
         <form className="cafeForm" onSubmit={(event) => { event.preventDefault(); void saveProfile(true); }}>
-          <CafeProfileForm token={token} value={formData} onChange={setFormData} requireGoogle={!editingCafe && !editingRevision?.cafe_id} />
+          <CafeProfileForm
+            token={token}
+            value={formData}
+            onChange={setFormData}
+            requireGoogle={!editingCafe && !editingRevision?.cafe_id}
+            existingProfile={
+              editingCafe
+                ? profileFromCafe(editingCafe)
+                : editingRevision?.live_cafe
+                  ? profileFromCafe(editingRevision.live_cafe)
+                  : null
+            }
+          />
           <div className="coverField">
             <div className="coverFieldActions">
               <strong>{isAdmin ? 'Public cover image' : 'Proposed cover image'}</strong>

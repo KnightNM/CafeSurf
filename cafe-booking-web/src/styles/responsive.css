@@ -178,6 +178,10 @@
     grid-column: auto;
   }
 
+  .hoursRow .periodList {
+    grid-column: 1 / -1;
+  }
+
   .reviewWorkspace {
     grid-template-columns: 1fr;
   }

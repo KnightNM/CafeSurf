@@ -135,6 +135,7 @@ export async function createCafe(req: Request, res: Response): Promise<void> {
       latitude: resolvedLatitude,
       longitude: resolvedLongitude,
       google_place_id: googlePlace?.place_id ?? null,
+      google_business_status: googlePlace?.business_status ?? null,
       contact_phone: req.body.contact_phone ?? googlePlace?.phone,
       website_url: req.body.website_url ?? googlePlace?.website,
     }, true);
@@ -145,17 +146,19 @@ export async function createCafe(req: Request, res: Response): Promise<void> {
     const cafe = await db.one<Cafe>(
       `INSERT INTO cafes
         (owner_id, name, area, latitude, longitude, hourly_rate, total_slots,
-         has_generator, wifi_speed_mbps, google_place_id, description, contact_phone,
+         has_generator, wifi_speed_mbps, google_place_id, google_business_status,
+         google_imported_at, description, contact_phone,
          contact_email, website_url, amenities, opening_hours, house_rules,
          access_instructions, publication_status, version, published_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13,
-         $14, $15, $16, $17, $18, 'published', 1, NOW())
+         $14, $15, $16, $17, $18, $19, $20, 'published', 1, NOW())
        RETURNING *`,
       [
         ownerId,
         profile.name, profile.area, profile.latitude, profile.longitude,
         profile.hourly_rate, profile.total_slots, profile.has_generator,
-        profile.wifi_speed_mbps, profile.google_place_id, profile.description,
+        profile.wifi_speed_mbps, profile.google_place_id, profile.google_business_status,
+        profile.google_imported_at, profile.description,
         profile.contact_phone, profile.contact_email, profile.website_url,
         profile.amenities, profile.opening_hours, profile.house_rules,
         profile.access_instructions,
@@ -219,21 +222,24 @@ export async function updateCafe(req: Request, res: Response): Promise<void> {
       body.latitude = googlePlace.latitude;
       body.longitude = googlePlace.longitude;
       body.google_place_id = googlePlace.place_id;
+      body.google_business_status = googlePlace.business_status;
     }
 
     const profile = normalizeCafeProfile({ ...cafeToProfile(existingCafe), ...body }, false);
     const cafe = await db.one<Cafe>(
       `UPDATE cafes SET name=$1, area=$2, latitude=$3, longitude=$4,
         hourly_rate=$5, total_slots=$6, has_generator=$7, wifi_speed_mbps=$8,
-        google_place_id=$9, description=$10, contact_phone=$11, contact_email=$12,
-        website_url=$13, amenities=$14, opening_hours=$15, house_rules=$16,
-        access_instructions=$17, publication_status='published', archived_at=NULL,
+        google_place_id=$9, google_business_status=$10, google_imported_at=$11,
+        description=$12, contact_phone=$13, contact_email=$14,
+        website_url=$15, amenities=$16, opening_hours=$17, house_rules=$18,
+        access_instructions=$19, publication_status='published', archived_at=NULL,
         version=version+1, published_at=NOW(), updated_at=NOW()
-       WHERE id=$18 RETURNING *`,
+       WHERE id=$20 RETURNING *`,
       [
         profile.name, profile.area, profile.latitude, profile.longitude,
         profile.hourly_rate, profile.total_slots, profile.has_generator,
-        profile.wifi_speed_mbps, profile.google_place_id, profile.description,
+        profile.wifi_speed_mbps, profile.google_place_id, profile.google_business_status,
+        profile.google_imported_at, profile.description,
         profile.contact_phone, profile.contact_email, profile.website_url,
         profile.amenities, profile.opening_hours, profile.house_rules,
         profile.access_instructions, id,
