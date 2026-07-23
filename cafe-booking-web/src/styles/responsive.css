@@ -1,0 +1,320 @@
+@media (max-width: 1100px) {
+  .publicHeader {
+    grid-template-columns: auto 1fr;
+  }
+
+  .publicHeader nav {
+    display: none;
+  }
+
+  .publicHeader .headerActions {
+    justify-content: flex-end;
+  }
+
+  .heroSection {
+    grid-template-columns: 1fr;
+  }
+
+  .heroCopy {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .motionStage {
+    min-height: 580px;
+  }
+
+  .workspaceCards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .timeGrid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .spaceHero {
+    grid-template-columns: 1fr;
+  }
+
+  .spaceHero .workspaceCoverLarge {
+    min-height: 480px;
+  }
+
+  .bookingCard {
+    grid-template-columns: 76px 1fr;
+  }
+
+  .bookingCard dl,
+  .bookingCard .cardActions {
+    grid-column: 2;
+  }
+
+  .operationsShell {
+    grid-template-columns: 1fr;
+  }
+
+  .operationsRail {
+    position: static;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    height: auto;
+  }
+
+  .operationsRail .railLabel {
+    display: none;
+  }
+
+  .operationsRail nav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .railUser {
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+}
+
+@media (max-width: 820px) {
+  .editorialHeading,
+  .stepsSection {
+    grid-template-columns: 1fr;
+  }
+
+  .filterBar {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .benefitGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .benefitGrid article {
+    min-height: auto;
+  }
+
+  .benefitGrid h3 {
+    margin-top: 30px;
+  }
+
+  .ownerCta,
+  .siteFooter {
+    align-items: start;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .ownerCta {
+    flex-direction: column;
+  }
+
+  .composerHeader {
+    display: grid;
+  }
+
+  .composerControls {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .selectionReadout {
+    grid-column: 1 / -1;
+  }
+
+  .timeGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .cafeManageCard {
+    grid-template-columns: 140px minmax(0, 1fr);
+  }
+
+  .cafeManageActions {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+  }
+
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .formGrid .fullWidth {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 620px) {
+  .publicHeader {
+    min-height: 72px;
+    padding: 0 18px;
+  }
+
+  .publicHeader .profileChip small,
+  .publicHeader .textButton,
+  .publicHeader .brandWord {
+    display: none;
+  }
+
+  .heroCopy {
+    padding: 72px 22px;
+  }
+
+  .heroCopy h1 {
+    font-size: clamp(3.5rem, 18vw, 5.5rem);
+  }
+
+  .heroActions,
+  .heroProof {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .motionStage {
+    min-height: 520px;
+  }
+
+  .calendarObject { left: 5%; width: 205px; }
+  .teamObject { top: 30%; right: 3%; }
+  .signalObject { right: 4%; bottom: 15%; }
+  .seatsObject { bottom: 7%; left: 5%; }
+  .cursorObject { top: 54%; right: 8%; }
+
+  .discoverySection,
+  .benefitSection,
+  .stepsSection,
+  .spacePage,
+  .bookingsPage {
+    padding: 70px 18px;
+  }
+
+  .workspaceCards,
+  .filterBar {
+    grid-template-columns: 1fr;
+  }
+
+  .editorialHeading {
+    margin-bottom: 34px;
+  }
+
+  .editorialHeading h2,
+  .darkEditorialCard h2 {
+    font-size: 3rem;
+  }
+
+  .darkEditorialCard {
+    padding: 30px 20px;
+  }
+
+  .siteFooter {
+    grid-template-columns: 1fr;
+    padding: 42px 22px;
+  }
+
+  .spaceHero .workspaceCoverLarge {
+    min-height: 330px;
+  }
+
+  .spaceHeroCopy {
+    padding: 30px 22px;
+  }
+
+  .bookingComposer {
+    padding: 22px 14px;
+  }
+
+  .composerControls {
+    grid-template-columns: 1fr;
+  }
+
+  .selectionReadout {
+    grid-column: auto;
+  }
+
+  .timeGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .bookingBar {
+    position: static;
+    align-items: stretch;
+    flex-direction: column;
+    border-radius: 20px;
+  }
+
+  .bookingBar .pillButton {
+    width: 100%;
+  }
+
+  .pageTitle > button {
+    position: static;
+    margin-top: 20px;
+  }
+
+  .bookingCard {
+    grid-template-columns: 64px 1fr;
+    padding: 12px;
+  }
+
+  .bookingCard dl {
+    grid-template-columns: 1fr;
+  }
+
+  .bookingCard .cardActions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .operationsRail {
+    grid-template-columns: 1fr auto;
+    padding: 18px;
+  }
+
+  .operationsRail nav {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+    order: 3;
+  }
+
+  .operationsRail nav a {
+    min-height: 40px;
+    padding: 10px;
+  }
+
+  .railUser > div {
+    display: none;
+  }
+
+  .operationsMain {
+    padding: 28px 16px;
+  }
+
+  .sectionHeader,
+  .applicationStatusRow,
+  .applicationActions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .headerActions,
+  .cafeManageActions,
+  .formActions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .cafeManageCard,
+  .coverField {
+    grid-template-columns: 1fr;
+  }
+
+  .reviewComposer {
+    grid-template-columns: 1fr;
+  }
+
+  .authPanel {
+    max-height: calc(100vh - 20px);
+    padding: 28px 20px;
+    border-radius: 22px;
+  }
+}

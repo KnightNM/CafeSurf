@@ -1,46 +1,53 @@
-# CafeSurf Run Instructions
+# CafeSurf setup and run instructions
 
-This repository contains:
+CafeSurf is a web-only application consisting of:
 
-- `cafe-booking-server` — Express API connected to Supabase PostgreSQL and Supabase Auth.
-- `cafe-booking-web` — React/Vite browser application.
+- `cafe-booking-web` — React/Vite browser application
+- `cafe-booking-server` — Express API connected to Supabase PostgreSQL and Auth
+
+There is no iOS build or release process.
 
 ## 1. Prerequisites
 
 - Node.js and npm
 - An active Supabase project
-- The Supabase PostgreSQL connection string
-- The Supabase project URL, publishable key, and service-role key
+- Supabase database connection and migration connection strings
+- Supabase project URL, publishable key, and server-only service-role key
 - A Resend account and verified sending domain for production authentication email
 
-## 2. Configure Supabase Auth
+## 2. Create local environment files
+
+From the repository root:
+
+```sh
+cp cafe-booking-server/.env.example cafe-booking-server/.env
+cp cafe-booking-web/.env.example cafe-booking-web/.env
+```
+
+The templates contain placeholders only. Never commit either `.env` file.
+
+## 3. Configure Supabase Auth
 
 In the Supabase dashboard:
 
 1. Open **Authentication → Sign In / Providers → Email**.
-2. Enable email/password authentication.
-3. Require email confirmation.
-4. Set the minimum password length to at least 8 characters.
-5. Open **Authentication → URL Configuration**.
-6. For local development, set the Site URL to:
+2. Enable email/password authentication and require email confirmation.
+3. Set the minimum password length to at least 8 characters.
+4. Open **Authentication → URL Configuration**.
+5. For local development, set the Site URL to `http://localhost:5173`.
+6. Add these redirect URLs:
 
    ```text
    http://localhost:5173
+   http://localhost:5173/auth/recovery
    ```
 
-7. Add these redirect URLs:
+Replace them with the deployed HTTPS web origin in production.
 
-   ```text
-   http://localhost:5173
-   http://localhost:5173/?auth=recovery
-   ```
-
-Replace these URLs with the deployed web origin in production.
-
-## 3. Configure Resend SMTP
+## 4. Configure Resend SMTP
 
 1. Verify an authentication sending domain in Resend.
-2. Configure the provided SPF and DKIM records, and add DMARC before launch.
+2. Configure its SPF and DKIM records, and add DMARC before launch.
 3. Create a restricted Resend API key.
 4. Open **Supabase Authentication → SMTP Settings** and enable custom SMTP.
 5. Enter:
@@ -54,21 +61,13 @@ Replace these URLs with the deployed web origin in production.
    Sender name: CafeSurf
    ```
 
-6. Customize and test the confirmation, invitation, and password-recovery templates.
+6. Customize and test confirmation, invitation, and password-recovery templates.
 
-Port `587` with STARTTLS can be used instead of port `465`.
+Port `587` with STARTTLS can be used instead of `465`.
 
-## 4. Configure the backend
+## 5. Configure the backend
 
-From the project root:
-
-```sh
-cd cafe-booking-server
-npm install
-cp .env.example .env
-```
-
-Set the following in `cafe-booking-server/.env`:
+Set these values in `cafe-booking-server/.env`:
 
 ```env
 DATABASE_URL=postgresql://postgres.PROJECT_REF:PASSWORD@REGION.pooler.supabase.com:5432/postgres
@@ -77,7 +76,7 @@ DATABASE_SSL=true
 
 SUPABASE_URL=https://PROJECT_REF.supabase.co
 SUPABASE_PUBLISHABLE_KEY=sb_publishable_your_key
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 AUTH_INVITE_REDIRECT_URL=http://localhost:5173
 
 PORT=3000
@@ -86,52 +85,53 @@ HOST=0.0.0.0
 
 Important:
 
-- Never commit `.env`.
-- Never expose `SUPABASE_SERVICE_ROLE_KEY` to the browser.
-- The service-role key is used by the guarded administrator bootstrap command, not normal browser requests.
+- Never expose `SUPABASE_SERVICE_ROLE_KEY` through a `VITE_` variable.
+- The service-role key is used only by guarded maintenance commands.
+- Use a direct/session connection suitable for migrations in `DATABASE_MIGRATION_URL`.
 
-## 5. Apply database migrations
+Install dependencies and apply migrations:
 
 ```sh
 cd /Users/knightnm/CAFE_Booking_Main/cafe-booking-server
+npm install
 npm run db:migrate
 ```
 
-The migrations are versioned and safe to rerun. The current Supabase database has already received migrations `001` and `002`, so it should report:
+The migration runner records applied migrations and is safe to rerun. If the
+database is current, it reports `Database is up to date.`
 
-```text
-Database is up to date.
-```
+Migration `002` refuses to run while legacy users, cafés, or bookings remain.
+`auth:reset-demo-data` is destructive and requires the explicit
+`--confirm-reset-demo-data` flag. Do not run it on data you need to preserve.
 
-Do not run `auth:reset-demo-data`; the authorized demo-data reset has already been completed.
+Migration `003` is additive. It:
 
-## 6. Bootstrap the first administrator
+- Backfills and enforces `bookings.team_size`, defaulting existing rows to one seat.
+- Adds the optional `cafes.cover_image_path`.
+- Creates the public-read `cafe-covers` Storage bucket with a 5 MB limit for
+  JPEG, PNG, and WebP files.
 
-Run this once, using a real email address:
+The bucket intentionally has no anonymous write policy. Owners upload directly
+with short-lived signed credentials issued by Express after an ownership check.
+
+## 6. Register the first administrator
+
+Configure SMTP first, then run this once with a real email address:
 
 ```sh
 cd /Users/knightnm/CAFE_Booking_Main/cafe-booking-server
 npm run auth:bootstrap-admin -- --email=admin@example.com --name="Admin Name"
 ```
 
-Expected behavior:
+Supabase sends an invitation email. Follow it to set the password, then use the
+normal web login. The command refuses to run after an administrator exists.
 
-1. Supabase sends an invitation email.
-2. The invited user follows the link and sets a password.
-3. The associated application profile receives the `admin` role.
-4. The command refuses to create another bootstrap administrator after one exists.
+Normal web registration always creates a customer, even if role metadata is
+supplied to Supabase Auth.
 
 ## 7. Configure the frontend
 
-In a second terminal:
-
-```sh
-cd /Users/knightnm/CAFE_Booking_Main/cafe-booking-web
-npm install
-cp .env.example .env
-```
-
-Set the following in `cafe-booking-web/.env`:
+Set these values in `cafe-booking-web/.env`:
 
 ```env
 VITE_API_BASE_URL=http://127.0.0.1:3000
@@ -154,34 +154,65 @@ Start the frontend in another terminal:
 
 ```sh
 cd /Users/knightnm/CAFE_Booking_Main/cafe-booking-web
+npm install
 npm run dev
 ```
 
-Open:
-
-```text
-http://localhost:5173
-```
-
-Check the API health endpoint:
+Open `http://localhost:5173` and check the API with:
 
 ```sh
 curl http://127.0.0.1:3000/api/health
 ```
 
-## 9. Verify authentication and roles
+Main browser routes:
 
-1. Register a new customer with a real email address.
-2. Open the confirmation email and verify the account.
-3. Sign in and confirm the **Explore**, **My bookings**, and **Become an owner** views appear.
+```text
+/
+/spaces/:id
+/bookings
+/owner/apply
+/owner/cafes
+/owner/cafes/new
+/owner/cafes/:id/edit
+/owner/cafes/:id/bookings
+/admin/owner-applications
+/auth/recovery
+```
+
+## 9. How authentication and roles work
+
+- Supabase stores and automatically refreshes the browser session.
+- The web app sends the access token in `Authorization: Bearer <token>`.
+- Express validates the token with Supabase and loads `public.users` by Auth UUID.
+- Express trusts the database role, never browser-supplied role metadata.
+- Roles are `customer`, `cafe_owner`, and `admin`.
+- Booking ownership is derived from the authenticated user, not body/query `user_id`.
+- Booking availability is measured in seats. Active overlapping bookings sum
+  `team_size`, and booking creation rejects any hour that would exceed capacity.
+- Booking totals use `hourly_rate × hours × team_size`.
+- Application tables have RLS enabled with no browser policies because data access goes through Express.
+
+Customers can submit one pending owner application. An administrator may approve
+or reject it. Approval transactionally changes the customer role to `cafe_owner`;
+rejection leaves it unchanged. Café owners can manage only their cafés, while
+administrators retain global access.
+
+## 10. Verify the complete flow
+
+1. Register a customer with a real email address and confirm it.
+2. Verify login, logout, refresh persistence, forgot-password, and reset-password.
+3. Create a multi-seat booking, verify the per-seat total, and cancel it.
 4. Submit an owner application.
-5. Sign in as the bootstrapped administrator.
-6. Open **Owner applications** and approve the request.
-7. Refresh the approved customer's application view.
-8. Confirm the customer becomes a café owner and receives the **My cafes** dashboard.
-9. Test forgot-password, reset-password, logout, and session restoration after refreshing the browser.
+5. Sign in as the bootstrapped administrator and approve it.
+6. Refresh the applicant view and confirm café-management navigation appears.
+7. Create a café, upload/replace/remove its cover, and manage its bookings as
+   the approved owner.
+8. Confirm customers cannot access owner/admin routes.
+9. Confirm an owner cannot manage another owner's café.
+10. Confirm a public visitor can browse spaces and availability but is asked to
+    sign in before the final booking confirmation.
 
-## 10. Run tests and production builds
+## 11. Test and build
 
 Backend:
 
@@ -203,9 +234,9 @@ npm run preview
 
 The generated frontend is written to `cafe-booking-web/dist`.
 
-## 11. Production environment
+## 12. Production deployment
 
-Backend hosting must receive:
+Backend hosting requires:
 
 ```text
 DATABASE_URL
@@ -219,7 +250,7 @@ PORT
 HOST
 ```
 
-Frontend hosting must receive:
+Frontend hosting requires:
 
 ```text
 VITE_API_BASE_URL
@@ -227,26 +258,58 @@ VITE_SUPABASE_URL
 VITE_SUPABASE_PUBLISHABLE_KEY
 ```
 
-Update Supabase's Site URL, redirect allowlist, and invitation redirect to the production HTTPS web address before deployment.
+Before launch:
+
+1. Set `VITE_API_BASE_URL` to the deployed Express API origin before building.
+2. Update the Supabase Site URL, invitation redirect, and allow
+   `https://YOUR_WEB_ORIGIN/auth/recovery`.
+3. Restrict the API CORS origin to the deployed web origin.
+4. Run `npm run db:migrate` as a controlled release step.
+5. Test production confirmation, invitation, and recovery emails.
+6. Configure the frontend host to rewrite SPA routes to `index.html`
+   (`cafe-booking-web/vercel.json` already handles this on Vercel).
+7. Repeat the complete-flow verification above against production.
 
 ## Troubleshooting
 
-### `SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY are required`
+### Backend reports missing Supabase environment variables
 
-The backend `.env` is missing one or both Supabase Auth values. Add them and restart the backend.
+Create `cafe-booking-server/.env` from its example, fill in `SUPABASE_URL` and
+`SUPABASE_PUBLISHABLE_KEY`, and restart the API.
 
-### Frontend opens with a missing Supabase environment error
+### Frontend reports missing Supabase environment variables
 
-Create `cafe-booking-web/.env`, add both `VITE_SUPABASE_*` values, and restart Vite.
+Create `cafe-booking-web/.env`, fill in both `VITE_SUPABASE_*` values, and restart Vite.
 
-### Confirmation or reset email is not delivered
+### Confirmation, invitation, or reset email does not arrive
 
-Verify Resend's domain records, Supabase custom SMTP settings, Auth logs, sender address, and redirect allowlist.
+Check the Resend domain records, Supabase SMTP settings and Auth logs, verified
+sender address, email templates, and redirect allowlist.
 
 ### API returns `Authenticated user profile not found`
 
-Confirm migration `002_supabase_auth_and_owner_applications.sql` was applied and the `on_auth_user_created` trigger exists. Delete the incomplete Auth test user and register again after fixing the trigger.
+Confirm migration `002_supabase_auth_and_owner_applications.sql` was applied and
+the `on_auth_user_created` trigger exists. Remove the incomplete test Auth user
+and register again only after repairing the trigger.
 
 ### API returns `Invalid or expired token`
 
-Sign out, sign in again, confirm the frontend and backend use the same Supabase project, and restart both processes after changing environment variables.
+Sign out and in again. Confirm the frontend and backend point to the same Supabase
+project, then restart both after changing environment values.
+
+### Admin bootstrap reports that an administrator already exists
+
+The bootstrap is intentionally one-time. Sign in with the existing administrator
+or change roles through a deliberate database administration process.
+
+### Git push says no remote is configured
+
+Run Git commands from the repository root:
+
+```sh
+cd /Users/knightnm/CAFE_Booking_Main
+git remote -v
+git push -u origin master
+```
+
+The expected remote is `https://github.com/KnightNM/CafeSurf.git`.

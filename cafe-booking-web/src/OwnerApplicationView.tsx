@@ -81,8 +81,8 @@ export default function OwnerApplicationView({
     <section className="dashboardPane applicationPane">
       <div className="sectionHeader">
         <div>
-          <p className="eyebrow">Partner with CafeSurf</p>
-          <h2>Become a café owner</h2>
+          <p className="kicker">PARTNER WITH CAFESURF</p>
+          <h2>List your workspace.</h2>
         </div>
         <button className="ghostButton" onClick={() => void loadApplication()}>Refresh</button>
       </div>

@@ -5,9 +5,9 @@
     "semantic_hash": "0666021a37114cbb8e5fdec510d4951f"
   },
   "cafe-booking-server/package.json": {
-    "mtime": 1783585520.111622,
-    "ast_hash": "d4b75bcf9b043674e98c57cce25437c9",
-    "semantic_hash": "d4b75bcf9b043674e98c57cce25437c9"
+    "mtime": 1784715631.0036073,
+    "ast_hash": "14ec22f9b0e1c8f66d9631e0a63e50d4",
+    "semantic_hash": "14ec22f9b0e1c8f66d9631e0a63e50d4"
   },
   "cafe-booking-server/src/config/database.ts": {
     "mtime": 1783509713.1973867,
@@ -15,74 +15,59 @@
     "semantic_hash": "ddf37ca4506c9d63c6ef79ae5f64f86f"
   },
   "cafe-booking-server/src/controllers/authController.ts": {
-    "mtime": 1783585550.3403814,
-    "ast_hash": "edde0aeeb549bc6e6925fd1db2a60781",
-    "semantic_hash": "edde0aeeb549bc6e6925fd1db2a60781"
+    "mtime": 1784712130.2649536,
+    "ast_hash": "35b8d3f4de6259dcc1f07a2f059474da",
+    "semantic_hash": "35b8d3f4de6259dcc1f07a2f059474da"
   },
   "cafe-booking-server/src/controllers/bookingController.ts": {
-    "mtime": 1783594296.281709,
-    "ast_hash": "94371b7af2ef3a73c0c07a26291f8f47",
-    "semantic_hash": "94371b7af2ef3a73c0c07a26291f8f47"
+    "mtime": 1784783514.84435,
+    "ast_hash": "31a3883f8e469a68a5fa764117b692ec",
+    "semantic_hash": "31a3883f8e469a68a5fa764117b692ec"
   },
   "cafe-booking-server/src/controllers/cafeController.ts": {
-    "mtime": 1783594261.6115422,
-    "ast_hash": "5bb1c6294bf3394a362886f58ac583dd",
-    "semantic_hash": "5bb1c6294bf3394a362886f58ac583dd"
+    "mtime": 1784784057.703626,
+    "ast_hash": "4ec8a3eecb6f66e25fdabc3ef6a8ec69",
+    "semantic_hash": "4ec8a3eecb6f66e25fdabc3ef6a8ec69"
   },
   "cafe-booking-server/src/controllers/cafeManagementController.ts": {
-    "mtime": 1783585606.2994473,
-    "ast_hash": "e2db103408a15ea31cd258dbda726fde",
-    "semantic_hash": "e2db103408a15ea31cd258dbda726fde"
-  },
-  "cafe-booking-server/src/db/init.ts": {
-    "mtime": 1783594231.9781435,
-    "ast_hash": "f28a66252bf541b87feacf121c232dae",
-    "semantic_hash": "f28a66252bf541b87feacf121c232dae"
-  },
-  "cafe-booking-server/src/db/seed.ts": {
-    "mtime": 1783594786.3920422,
-    "ast_hash": "342c23a049a484ea6e8f08e7a66d045c",
-    "semantic_hash": "342c23a049a484ea6e8f08e7a66d045c"
+    "mtime": 1784783659.610743,
+    "ast_hash": "131934b5f4a3151ddc9b1aaf16a11696",
+    "semantic_hash": "131934b5f4a3151ddc9b1aaf16a11696"
   },
   "cafe-booking-server/src/index.ts": {
-    "mtime": 1783585636.2162158,
-    "ast_hash": "e9c808db23c143c31a40de42c36b2b3a",
-    "semantic_hash": "e9c808db23c143c31a40de42c36b2b3a"
+    "mtime": 1784712203.1994073,
+    "ast_hash": "cf2f20bf7956a5427f3bf01c2d1d7416",
+    "semantic_hash": "cf2f20bf7956a5427f3bf01c2d1d7416"
   },
   "cafe-booking-server/src/middleware/auth.ts": {
-    "mtime": 1783585560.3942816,
-    "ast_hash": "9b206a94f94d8caf64cc642106771c10",
-    "semantic_hash": "9b206a94f94d8caf64cc642106771c10"
+    "mtime": 1784715359.5485003,
+    "ast_hash": "8e4104dccbf24585569dc1792aeb60b3",
+    "semantic_hash": "8e4104dccbf24585569dc1792aeb60b3"
   },
   "cafe-booking-server/src/models/types.ts": {
-    "mtime": 1783594226.6000419,
-    "ast_hash": "295a8c96a35289c22c885960c554deea",
-    "semantic_hash": "295a8c96a35289c22c885960c554deea"
+    "mtime": 1784783514.3016744,
+    "ast_hash": "2b8c9779950644f22921ad363d97ddae",
+    "semantic_hash": "2b8c9779950644f22921ad363d97ddae"
   },
   "cafe-booking-server/src/routes/authRoutes.ts": {
-    "mtime": 1783585565.3512483,
-    "ast_hash": "d8ca48b9eb08b194c3a02d371bec3daf",
-    "semantic_hash": "d8ca48b9eb08b194c3a02d371bec3daf"
+    "mtime": 1784712130.5105107,
+    "ast_hash": "617cef520e4146d852646982612918be",
+    "semantic_hash": "617cef520e4146d852646982612918be"
   },
   "cafe-booking-server/src/routes/bookingRoutes.ts": {
-    "mtime": 1783594285.9265456,
-    "ast_hash": "073521194b3999fd151caea5728f24d9",
-    "semantic_hash": "073521194b3999fd151caea5728f24d9"
+    "mtime": 1784712153.349179,
+    "ast_hash": "ee8a1871e0ee9a1a0c3d6e82fac10e95",
+    "semantic_hash": "ee8a1871e0ee9a1a0c3d6e82fac10e95"
   },
   "cafe-booking-server/src/routes/cafeManagementRoutes.ts": {
-    "mtime": 1783585612.1103146,
-    "ast_hash": "ee2d1666c44130fc30574ae9dc2a7902",
-    "semantic_hash": "ee2d1666c44130fc30574ae9dc2a7902"
+    "mtime": 1784783584.0834637,
+    "ast_hash": "28d39a83d7ec1c32e85a3422b92fd350",
+    "semantic_hash": "28d39a83d7ec1c32e85a3422b92fd350"
   },
   "cafe-booking-server/src/routes/cafeRoutes.ts": {
-    "mtime": 1780052424.4199343,
-    "ast_hash": "599ce61530721043b1f283c4aeb2b819",
-    "semantic_hash": "599ce61530721043b1f283c4aeb2b819"
-  },
-  "cafe-booking-server/src/utils/auth.ts": {
-    "mtime": 1783585524.4119189,
-    "ast_hash": "0467ca3dbf9e1f8e9e11452f2baff997",
-    "semantic_hash": "0467ca3dbf9e1f8e9e11452f2baff997"
+    "mtime": 1784784057.9708605,
+    "ast_hash": "3172f6a18768aca943a09654a18b1252",
+    "semantic_hash": "3172f6a18768aca943a09654a18b1252"
   },
   "cafe-booking-server/src/utils/network.ts": {
     "mtime": 1780052424.4159267,
@@ -95,44 +80,39 @@
     "semantic_hash": "8204b32d496d9e35634a8e829cf60f2f"
   },
   "cafe-booking-web/package.json": {
-    "mtime": 1783594721.954119,
-    "ast_hash": "62401ec44627e2254a06c32ae655580e",
-    "semantic_hash": "62401ec44627e2254a06c32ae655580e"
-  },
-  "cafe-booking-web/src/AmbientScene.tsx": {
-    "mtime": 1783595076.7972844,
-    "ast_hash": "75fdb4fd2e605a75cde44f4e3b5b5b53",
-    "semantic_hash": "75fdb4fd2e605a75cde44f4e3b5b5b53"
+    "mtime": 1784783975.5541837,
+    "ast_hash": "f5dc6de06af222342f3f76d9348056c7",
+    "semantic_hash": "f5dc6de06af222342f3f76d9348056c7"
   },
   "cafe-booking-web/src/App.tsx": {
-    "mtime": 1783594770.3508341,
-    "ast_hash": "1a5a8d6b621fce96147dc3ac80920c50",
-    "semantic_hash": "1a5a8d6b621fce96147dc3ac80920c50"
+    "mtime": 1784784623.09698,
+    "ast_hash": "2e2f42bd41fcd5833acb97e2b1de80d2",
+    "semantic_hash": "2e2f42bd41fcd5833acb97e2b1de80d2"
   },
   "cafe-booking-web/src/Auth.tsx": {
-    "mtime": 1783594780.0086834,
-    "ast_hash": "f7faa9d6587f1e0396d5e9ca09dcd68c",
-    "semantic_hash": "f7faa9d6587f1e0396d5e9ca09dcd68c"
+    "mtime": 1784784210.9992275,
+    "ast_hash": "d40f0a4eedc6a9916bd8647c52aceeb1",
+    "semantic_hash": "d40f0a4eedc6a9916bd8647c52aceeb1"
   },
   "cafe-booking-web/src/CafeOwnerDashboard.tsx": {
-    "mtime": 1783594372.5145054,
-    "ast_hash": "3ff66d5dab9391555883b844df4668e0",
-    "semantic_hash": "3ff66d5dab9391555883b844df4668e0"
+    "mtime": 1784785010.3520539,
+    "ast_hash": "89c49b9030d66d5ae0c473ac6e3677b4",
+    "semantic_hash": "89c49b9030d66d5ae0c473ac6e3677b4"
   },
   "cafe-booking-web/src/api.ts": {
-    "mtime": 1783594312.0955741,
-    "ast_hash": "7355ea650441addbcd62143d2a124e7c",
-    "semantic_hash": "7355ea650441addbcd62143d2a124e7c"
+    "mtime": 1784784090.880939,
+    "ast_hash": "12a5bbbe39577cca86cda5bfe5eaaf5b",
+    "semantic_hash": "12a5bbbe39577cca86cda5bfe5eaaf5b"
   },
   "cafe-booking-web/src/main.tsx": {
-    "mtime": 1782968348.873411,
-    "ast_hash": "afe2a76cc2def68ece59e73aa20c6d60",
-    "semantic_hash": "afe2a76cc2def68ece59e73aa20c6d60"
+    "mtime": 1784784623.3991153,
+    "ast_hash": "015e087ce7d438428a92fbd979e5a800",
+    "semantic_hash": "015e087ce7d438428a92fbd979e5a800"
   },
   "cafe-booking-web/src/types.ts": {
-    "mtime": 1783594304.9278097,
-    "ast_hash": "36824e3c3fca82fee25d8b4b5706ef77",
-    "semantic_hash": "36824e3c3fca82fee25d8b4b5706ef77"
+    "mtime": 1784784090.5656707,
+    "ast_hash": "217098620a1145a78220f94674a75a94",
+    "semantic_hash": "217098620a1145a78220f94674a75a94"
   },
   "cafe-booking-web/src/vite-env.d.ts": {
     "mtime": 1782980192.1432714,
@@ -148,5 +128,200 @@
     "mtime": 1782968347.9180553,
     "ast_hash": "3a55cccf8405329a51d0e99de0f14288",
     "semantic_hash": "3a55cccf8405329a51d0e99de0f14288"
+  },
+  "cafe-booking-server/migrations/001_initial_schema.sql": {
+    "mtime": 1784648405.7049415,
+    "ast_hash": "a0edd99e42aff4e845cf394f0a012be2",
+    "semantic_hash": "a0edd99e42aff4e845cf394f0a012be2"
+  },
+  "cafe-booking-server/migrations/002_supabase_auth_and_owner_applications.sql": {
+    "mtime": 1784712289.0732028,
+    "ast_hash": "906080e7dc2c59842b70277c917c7034",
+    "semantic_hash": "906080e7dc2c59842b70277c917c7034"
+  },
+  "cafe-booking-server/src/config/supabase.ts": {
+    "mtime": 1784783659.2668688,
+    "ast_hash": "09af254f6c5a14a16b115c57d50c1cd7",
+    "semantic_hash": "09af254f6c5a14a16b115c57d50c1cd7"
+  },
+  "cafe-booking-server/src/controllers/ownerApplicationController.ts": {
+    "mtime": 1784715630.1038427,
+    "ast_hash": "75012096f7eccefa2ad8389db89a5546",
+    "semantic_hash": "75012096f7eccefa2ad8389db89a5546"
+  },
+  "cafe-booking-server/src/db/bootstrapAdmin.ts": {
+    "mtime": 1784712289.5746765,
+    "ast_hash": "0e4901c15c4234325ffcf73b7c206479",
+    "semantic_hash": "0e4901c15c4234325ffcf73b7c206479"
+  },
+  "cafe-booking-server/src/db/migrate.ts": {
+    "mtime": 1784648423.8047423,
+    "ast_hash": "008f308f2794300dc017d2ee6fd22ad2",
+    "semantic_hash": "008f308f2794300dc017d2ee6fd22ad2"
+  },
+  "cafe-booking-server/src/db/resetDemoData.ts": {
+    "mtime": 1784715053.7677813,
+    "ast_hash": "7dbc3b1131e3d08e8c6f7a5c3c257d14",
+    "semantic_hash": "7dbc3b1131e3d08e8c6f7a5c3c257d14"
+  },
+  "cafe-booking-server/src/routes/adminRoutes.ts": {
+    "mtime": 1784712202.9513373,
+    "ast_hash": "83baf5868470d9c2253c3da280b563fd",
+    "semantic_hash": "83baf5868470d9c2253c3da280b563fd"
+  },
+  "cafe-booking-server/src/routes/ownerApplicationRoutes.ts": {
+    "mtime": 1784712202.7028985,
+    "ast_hash": "44177da52ae78af54a2556301198ef37",
+    "semantic_hash": "44177da52ae78af54a2556301198ef37"
+  },
+  "cafe-booking-server/test/authMiddleware.test.ts": {
+    "mtime": 1784715672.7058153,
+    "ast_hash": "41c9d269edb753c79b9c44be850b62c5",
+    "semantic_hash": "41c9d269edb753c79b9c44be850b62c5"
+  },
+  "cafe-booking-server/test/ownerApplicationValidation.test.ts": {
+    "mtime": 1784715630.7579913,
+    "ast_hash": "49ca75100b81c933e9ac9627d892fc6e",
+    "semantic_hash": "49ca75100b81c933e9ac9627d892fc6e"
+  },
+  "cafe-booking-server/vercel.json": {
+    "mtime": 1784732562.382141,
+    "ast_hash": "e62500e7ff6df3d06e83164d9041f6de",
+    "semantic_hash": "e62500e7ff6df3d06e83164d9041f6de"
+  },
+  "cafe-booking-web/src/AdminOwnerApplications.tsx": {
+    "mtime": 1784785041.5123305,
+    "ast_hash": "8647337622b08d24a91779b6dcebf476",
+    "semantic_hash": "8647337622b08d24a91779b6dcebf476"
+  },
+  "cafe-booking-web/src/OwnerApplicationView.tsx": {
+    "mtime": 1784785041.78557,
+    "ast_hash": "41729ac78a6e4f7d94188f3cc5c89392",
+    "semantic_hash": "41729ac78a6e4f7d94188f3cc5c89392"
+  },
+  "cafe-booking-web/src/api.test.ts": {
+    "mtime": 1784785111.6163871,
+    "ast_hash": "163f4cd6d0f2fa74b065409f17dcb7a2",
+    "semantic_hash": "163f4cd6d0f2fa74b065409f17dcb7a2"
+  },
+  "cafe-booking-web/src/supabase.ts": {
+    "mtime": 1784712390.7276301,
+    "ast_hash": "747883f861e588a6fde2052599e4477c",
+    "semantic_hash": "747883f861e588a6fde2052599e4477c"
+  },
+  "README.md": {
+    "mtime": 1784785887.11557,
+    "ast_hash": "378cd0d048656975cdb992e71d3dfeee",
+    "semantic_hash": "378cd0d048656975cdb992e71d3dfeee"
+  },
+  "RUN_INSTRUCTIONS.md": {
+    "mtime": 1784785887.433686,
+    "ast_hash": "b703d9619b697e2edb5e6e8b55e69c9b",
+    "semantic_hash": "b703d9619b697e2edb5e6e8b55e69c9b"
+  },
+  "cafe-booking-server/AUTH_SETUP.md": {
+    "mtime": 1784785887.8256664,
+    "ast_hash": "556dea76b36fe6ac41cd7ab49253e598",
+    "semantic_hash": "556dea76b36fe6ac41cd7ab49253e598"
+  },
+  "cafe-booking-server/docker-compose.yml": {
+    "mtime": 1780052424.3884218,
+    "ast_hash": "cf773a5c3fb56f674bad2dd2a10f7c74",
+    "semantic_hash": "cf773a5c3fb56f674bad2dd2a10f7c74"
+  },
+  "cafe-booking-web/README.md": {
+    "mtime": 1784785888.184382,
+    "ast_hash": "b7f13e350d65f57dcd9905b2c00bbee0",
+    "semantic_hash": "b7f13e350d65f57dcd9905b2c00bbee0"
+  },
+  "cafe-booking-web/index.html": {
+    "mtime": 1783594862.3583848,
+    "ast_hash": "f165f991dd8a86f84378d7c2853ad9ce",
+    "semantic_hash": "f165f991dd8a86f84378d7c2853ad9ce"
+  },
+  "cafe-booking-server/migrations/003_team_bookings_and_cafe_covers.sql": {
+    "mtime": 1784783514.017092,
+    "ast_hash": "d40e62a593d21c58b5ad57d64c74d8ce",
+    "semantic_hash": "d40e62a593d21c58b5ad57d64c74d8ce"
+  },
+  "cafe-booking-server/test/bookingRules.test.ts": {
+    "mtime": 1784783584.3530543,
+    "ast_hash": "0d8265241be1155d14f04d8389f74902",
+    "semantic_hash": "0d8265241be1155d14f04d8389f74902"
+  },
+  "cafe-booking-server/test/cafeCoverValidation.test.ts": {
+    "mtime": 1784783584.6265988,
+    "ast_hash": "d424b44180538b6a62748b1811404cd8",
+    "semantic_hash": "d424b44180538b6a62748b1811404cd8"
+  },
+  "cafe-booking-web/src/components/Brand.tsx": {
+    "mtime": 1784784159.342781,
+    "ast_hash": "b46622960e55b857a2100666c37dfcc4",
+    "semantic_hash": "b46622960e55b857a2100666c37dfcc4"
+  },
+  "cafe-booking-web/src/components/MotionObjects.tsx": {
+    "mtime": 1784784159.8338032,
+    "ast_hash": "f55dea5f899708f295bfc773b494c020",
+    "semantic_hash": "f55dea5f899708f295bfc773b494c020"
+  },
+  "cafe-booking-web/src/components/OperationsShell.tsx": {
+    "mtime": 1784784160.5934846,
+    "ast_hash": "61601cf4b0a765327f03573ba2ca1894",
+    "semantic_hash": "61601cf4b0a765327f03573ba2ca1894"
+  },
+  "cafe-booking-web/src/components/PublicHeader.tsx": {
+    "mtime": 1784784160.3477616,
+    "ast_hash": "6c097cc8f49b083e4ad5b8ebb3ff12d9",
+    "semantic_hash": "6c097cc8f49b083e4ad5b8ebb3ff12d9"
+  },
+  "cafe-booking-web/src/components/Reveal.tsx": {
+    "mtime": 1784784160.0933213,
+    "ast_hash": "ffccf7484d6afa75e5eea78141023321",
+    "semantic_hash": "ffccf7484d6afa75e5eea78141023321"
+  },
+  "cafe-booking-web/src/components/WorkspaceCover.test.tsx": {
+    "mtime": 1784785191.6618977,
+    "ast_hash": "7426f84dc77509bd111023c0da15fc6d",
+    "semantic_hash": "7426f84dc77509bd111023c0da15fc6d"
+  },
+  "cafe-booking-web/src/components/WorkspaceCover.tsx": {
+    "mtime": 1784784159.5897682,
+    "ast_hash": "f7c5d2e2b1d315d6eab7db05d289549d",
+    "semantic_hash": "f7c5d2e2b1d315d6eab7db05d289549d"
+  },
+  "cafe-booking-web/src/coverApi.test.ts": {
+    "mtime": 1784785191.9323227,
+    "ast_hash": "c5cf5bf4694e8a1c6f4c644b657afb47",
+    "semantic_hash": "c5cf5bf4694e8a1c6f4c644b657afb47"
+  },
+  "cafe-booking-web/src/lib/format.test.ts": {
+    "mtime": 1784785191.398018,
+    "ast_hash": "13db41833bdcbef33f86488992962af6",
+    "semantic_hash": "13db41833bdcbef33f86488992962af6"
+  },
+  "cafe-booking-web/src/lib/format.ts": {
+    "mtime": 1784784158.9068472,
+    "ast_hash": "4c4155cde30136c0e5611442b32bcff8",
+    "semantic_hash": "4c4155cde30136c0e5611442b32bcff8"
+  },
+  "cafe-booking-web/src/pages/BookingsPage.tsx": {
+    "mtime": 1784784557.8472328,
+    "ast_hash": "55de4cdcf3e91c1bdf18ebd4737d4743",
+    "semantic_hash": "55de4cdcf3e91c1bdf18ebd4737d4743"
+  },
+  "cafe-booking-web/src/pages/HomePage.tsx": {
+    "mtime": 1784784557.339221,
+    "ast_hash": "00708de73a2bcc6c6d0310618a259ebc",
+    "semantic_hash": "00708de73a2bcc6c6d0310618a259ebc"
+  },
+  "cafe-booking-web/src/pages/SpacePage.tsx": {
+    "mtime": 1784784557.5944993,
+    "ast_hash": "7f7516de25cd56ee6915e08afbec1165",
+    "semantic_hash": "7f7516de25cd56ee6915e08afbec1165"
+  },
+  "cafe-booking-web/vercel.json": {
+    "mtime": 1784785888.534645,
+    "ast_hash": "61bd31a2b0ac08f10f13c932b32d6ca1",
+    "semantic_hash": "61bd31a2b0ac08f10f13c932b32d6ca1"
   }
 }

@@ -11,7 +11,9 @@ import type {
   OwnerApplicationStatus,
   CreateOwnerApplicationRequest,
   User,
+  CafeCoverUploadTicket,
 } from './types';
+import { supabase } from './supabase';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://127.0.0.1:3000';
 
@@ -64,6 +66,11 @@ export async function fetchCafes(filters: {
   const query = params.toString();
   const data = await request<{ cafes: Cafe[] }>(`/api/cafes${query ? `?${query}` : ''}`);
   return data.cafes;
+}
+
+export async function fetchCafe(id: string): Promise<Cafe> {
+  const data = await request<{ cafe: Cafe }>(`/api/cafes/${id}`);
+  return data.cafe;
 }
 
 export async function fetchAvailability(cafeId: string, date: string): Promise<AvailabilitySlot[]> {
@@ -138,6 +145,48 @@ export async function fetchMyCafes(token: string): Promise<Cafe[]> {
     token
   );
   return data.cafes;
+}
+
+export async function uploadCafeCoverApi(
+  accessToken: string,
+  cafeId: string,
+  file: File
+): Promise<Cafe> {
+  const ticket = await request<CafeCoverUploadTicket>(
+    `/api/cafes/management/${cafeId}/cover-image/upload-url`,
+    {
+      method: 'POST',
+      body: JSON.stringify({
+        file_name: file.name,
+        content_type: file.type,
+        size_bytes: file.size,
+      }),
+    },
+    accessToken
+  );
+
+  const { error: uploadError } = await supabase.storage
+    .from('cafe-covers')
+    .uploadToSignedUrl(ticket.path, ticket.token, file, {
+      contentType: file.type,
+    });
+  if (uploadError) throw uploadError;
+
+  const data = await request<{ cafe: Cafe }>(
+    `/api/cafes/management/${cafeId}/cover-image`,
+    { method: 'PUT', body: JSON.stringify({ path: ticket.path }) },
+    accessToken
+  );
+  return data.cafe;
+}
+
+export async function deleteCafeCoverApi(accessToken: string, cafeId: string): Promise<Cafe> {
+  const data = await request<{ cafe: Cafe }>(
+    `/api/cafes/management/${cafeId}/cover-image`,
+    { method: 'DELETE' },
+    accessToken
+  );
+  return data.cafe;
 }
 
 export async function createCafeApi(token: string, payload: CreateCafeRequest): Promise<Cafe> {

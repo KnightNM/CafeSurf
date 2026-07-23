@@ -11,6 +11,8 @@ export interface Cafe {
   total_slots: number;
   has_generator: boolean;
   wifi_speed_mbps: number;
+  cover_image_path: string | null;
+  cover_image_url: string | null;
   created_at: Date;
   updated_at: Date;
 }
@@ -40,6 +42,7 @@ export interface Booking {
   start_time: number;
   end_time: number;
   total_price: number;
+  team_size: number;
   status: BookingStatus;
   created_at: Date;
 }
@@ -56,6 +59,7 @@ export interface CreateBookingRequest {
   date: string;       // YYYY-MM-DD
   start_time: number;  // 0–23
   end_time: number;    // 1–24 (exclusive upper bound)
+  team_size?: number;  // Defaults to 1 for backward compatibility
 }
 
 export interface AvailabilitySlot {
