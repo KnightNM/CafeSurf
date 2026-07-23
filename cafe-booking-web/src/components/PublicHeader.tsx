@@ -14,8 +14,8 @@ export default function PublicHeader({ user, onAuth, onLogout }: PublicHeaderPro
     <header className="publicHeader">
       <Brand />
       <nav aria-label="Primary navigation">
-        <NavLink to="/#spaces">Find a space</NavLink>
-        <NavLink to="/#how-it-works">How it works</NavLink>
+        <Link to="/#spaces">Find a space</Link>
+        <Link to="/#how-it-works">How it works</Link>
         {user?.role === 'customer' && <NavLink to="/owner/apply">For owners</NavLink>}
         {(user?.role === 'cafe_owner' || user?.role === 'admin') && (
           <NavLink to="/owner/cafes">Workspace console</NavLink>

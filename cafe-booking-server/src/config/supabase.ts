@@ -21,6 +21,7 @@ export const supabaseAuth = createClient(configuredSupabaseUrl, supabasePublisha
 let adminClient: ReturnType<typeof createClient> | null = null;
 
 export const CAFE_COVERS_BUCKET = 'cafe-covers';
+export const CAFE_REVISION_COVERS_BUCKET = 'cafe-revision-covers';
 
 export function getSupabaseAdmin(): ReturnType<typeof createClient> {
   if (adminClient) return adminClient;

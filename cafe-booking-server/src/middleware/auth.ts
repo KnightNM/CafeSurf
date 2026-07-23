@@ -56,6 +56,18 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
 }
 
 /**
+ * Loads a Supabase identity when a Bearer token is present, while allowing
+ * anonymous requests through unchanged.
+ */
+export async function optionalAuthenticate(req: Request, res: Response, next: NextFunction): Promise<void> {
+  if (!req.headers.authorization) {
+    next();
+    return;
+  }
+  await authenticate(req, res, next);
+}
+
+/**
  * Role-based authorization middleware
  * Requires authentication and specific role
  */

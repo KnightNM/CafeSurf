@@ -88,6 +88,16 @@
 }
 
 @media (max-width: 820px) {
+  .scrollChapter {
+    min-height: 0;
+  }
+
+  .scrollChapterStage {
+    position: static;
+    min-height: 0;
+    opacity: 1;
+    transform: none;
+  }
   .editorialHeading,
   .stepsSection {
     grid-template-columns: 1fr;
@@ -151,9 +161,72 @@
   .formGrid .fullWidth {
     grid-column: auto;
   }
+
+  .formGrid .spanTwo {
+    grid-column: auto;
+  }
+
+  .amenityChecklist {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .hoursRow {
+    grid-template-columns: 60px 1fr;
+  }
+
+  .hoursRow label:not(.filterToggle) {
+    grid-column: auto;
+  }
+
+  .reviewWorkspace {
+    grid-template-columns: 1fr;
+  }
+
+  .diffHeader,
+  .diffRow {
+    grid-template-columns: 120px 1fr 1fr;
+  }
+
+  .profileDetailsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (pointer: coarse), (prefers-reduced-motion: reduce) {
+  .scrollChapter {
+    min-height: 0;
+  }
+
+  .scrollChapterStage {
+    position: static;
+    min-height: 0;
+    opacity: 1;
+    transform: none;
+  }
 }
 
 @media (max-width: 620px) {
+  .amenityChecklist,
+  .coverComparison {
+    grid-template-columns: 1fr;
+  }
+
+  .revisionCard {
+    grid-template-columns: 1fr;
+  }
+
+  .diffHeader {
+    display: none;
+  }
+
+  .diffRow {
+    grid-template-columns: 1fr;
+  }
+
+  .diffRow > * {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
   .publicHeader {
     min-height: 72px;
     padding: 0 18px;

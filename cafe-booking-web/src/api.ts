@@ -14,6 +14,10 @@ import type {
   CafeCoverUploadTicket,
   GooglePlaceDetails,
   GooglePlaceSuggestion,
+  CafeRevision,
+  CafeRevisionStatus,
+  CafeRevisionAction,
+  HomeSummary,
 } from './types';
 import { supabase } from './supabase';
 
@@ -99,13 +103,13 @@ export async function autocompleteGooglePlaces(
 }
 
 export async function fetchCafeGooglePlace(
-  token: string,
+  token: string | null,
   cafeId: string
 ): Promise<GooglePlaceDetails> {
   const data = await request<{ place: GooglePlaceDetails }>(
     `/api/google-places/cafes/${cafeId}`,
     undefined,
-    token
+    token || undefined
   );
   return data.place;
 }
@@ -252,6 +256,125 @@ export async function fetchCafeBookings(token: string, cafeId: string): Promise<
     token
   );
   return data.bookings;
+}
+
+export async function createCafeRevisionApi(
+  token: string,
+  action: CafeRevisionAction,
+  proposedData: CreateCafeRequest,
+  cafeId?: string
+): Promise<CafeRevision> {
+  const data = await request<{ revision: CafeRevision }>(
+    '/api/cafe-revisions',
+    { method: 'POST', body: JSON.stringify({ action, cafe_id: cafeId, proposed_data: proposedData }) },
+    token
+  );
+  return data.revision;
+}
+
+export async function fetchMyCafeRevisions(token: string): Promise<CafeRevision[]> {
+  const data = await request<{ revisions: CafeRevision[] }>('/api/cafe-revisions/mine', undefined, token);
+  return data.revisions;
+}
+
+export async function fetchCafeRevision(token: string, id: string): Promise<CafeRevision> {
+  const data = await request<{ revision: CafeRevision }>(`/api/cafe-revisions/${id}`, undefined, token);
+  return data.revision;
+}
+
+export async function updateCafeRevisionApi(
+  token: string,
+  id: string,
+  proposedData: CreateCafeRequest
+): Promise<CafeRevision> {
+  const data = await request<{ revision: CafeRevision }>(
+    `/api/cafe-revisions/${id}`,
+    { method: 'PUT', body: JSON.stringify({ proposed_data: proposedData }) },
+    token
+  );
+  return data.revision;
+}
+
+export async function submitCafeRevisionApi(token: string, id: string): Promise<CafeRevision> {
+  const data = await request<{ revision: CafeRevision }>(
+    `/api/cafe-revisions/${id}/submit`,
+    { method: 'POST' },
+    token
+  );
+  return data.revision;
+}
+
+export async function withdrawCafeRevisionApi(token: string, id: string): Promise<CafeRevision> {
+  const data = await request<{ revision: CafeRevision }>(
+    `/api/cafe-revisions/${id}/withdraw`,
+    { method: 'POST' },
+    token
+  );
+  return data.revision;
+}
+
+export async function uploadCafeRevisionCoverApi(
+  token: string,
+  revisionId: string,
+  file: File
+): Promise<CafeRevision> {
+  const ticket = await request<CafeCoverUploadTicket>(
+    `/api/cafe-revisions/${revisionId}/cover-image/upload-url`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ file_name: file.name, content_type: file.type, size_bytes: file.size }),
+    },
+    token
+  );
+  const { error } = await supabase.storage
+    .from('cafe-revision-covers')
+    .uploadToSignedUrl(ticket.path, ticket.token, file, { contentType: file.type });
+  if (error) throw error;
+  const data = await request<{ revision: CafeRevision }>(
+    `/api/cafe-revisions/${revisionId}/cover-image`,
+    { method: 'PUT', body: JSON.stringify({ path: ticket.path, content_type: file.type }) },
+    token
+  );
+  return data.revision;
+}
+
+export async function deleteCafeRevisionCoverApi(token: string, revisionId: string): Promise<void> {
+  await request<{ message: string }>(
+    `/api/cafe-revisions/${revisionId}/cover-image`,
+    { method: 'DELETE' },
+    token
+  );
+}
+
+export async function fetchAdminCafeRevisions(
+  token: string,
+  status: CafeRevisionStatus
+): Promise<CafeRevision[]> {
+  const data = await request<{ revisions: CafeRevision[] }>(
+    `/api/admin/cafe-revisions?status=${status}`,
+    undefined,
+    token
+  );
+  return data.revisions;
+}
+
+export async function decideCafeRevisionApi(
+  token: string,
+  id: string,
+  decision: 'approved' | 'rejected',
+  reviewNote?: string
+): Promise<CafeRevision> {
+  const data = await request<{ revision: CafeRevision }>(
+    `/api/admin/cafe-revisions/${id}`,
+    { method: 'PATCH', body: JSON.stringify({ decision, review_note: reviewNote || undefined }) },
+    token
+  );
+  return data.revision;
+}
+
+export async function fetchHomeSummary(token?: string | null): Promise<HomeSummary> {
+  const data = await request<{ summary: HomeSummary }>('/api/home/summary', undefined, token || undefined);
+  return data.summary;
 }
 
 // ── Owner applications ─────────────────────────────

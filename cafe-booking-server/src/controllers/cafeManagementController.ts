@@ -11,6 +11,7 @@ import {
   getGooglePlaceDetails,
   validatePlaceId,
 } from '../services/googlePlaces';
+import { cafeToProfile, normalizeCafeProfile } from '../services/cafeProfile';
 
 const MAX_COVER_BYTES = 5 * 1024 * 1024;
 const COVER_EXTENSIONS: Record<string, string> = {
@@ -90,8 +91,8 @@ export async function createCafe(req: Request, res: Response): Promise<void> {
       return;
     }
 
-    if (userRole !== 'cafe_owner' && userRole !== 'admin') {
-      res.status(403).json({ error: 'Only cafe owners and admins can create cafes' });
+    if (userRole !== 'admin') {
+      res.status(403).json({ error: 'Only admins can publish cafés directly' });
       return;
     }
 
@@ -114,58 +115,51 @@ export async function createCafe(req: Request, res: Response): Promise<void> {
         google_session_token
       )
       : null;
-    const resolvedName = googlePlace?.display_name ?? name;
+    const resolvedName = name || googlePlace?.display_name;
     const resolvedArea = googlePlace?.formatted_address ?? area;
     const resolvedLatitude = googlePlace?.latitude ?? latitude;
     const resolvedLongitude = googlePlace?.longitude ?? longitude;
 
-    // ── Input validation ─────────────────────────────
-    if (
-      !resolvedName ||
-      !resolvedArea ||
-      !Number.isFinite(resolvedLatitude) ||
-      !Number.isFinite(resolvedLongitude) ||
-      !hourly_rate ||
-      !total_slots
-    ) {
-      res.status(400).json({
-        error: 'Missing required fields',
-        details: 'Required: a Google Maps location or manual name/area/coordinates, hourly_rate, total_slots',
-      });
-      return;
-    }
-
-    if (hourly_rate <= 0) {
-      res.status(400).json({ error: 'Hourly rate must be positive' });
-      return;
-    }
-
-    if (total_slots <= 0) {
-      res.status(400).json({ error: 'Total slots must be positive' });
-      return;
-    }
+    const profile = normalizeCafeProfile({
+      ...req.body,
+      name: resolvedName,
+      area: resolvedArea,
+      latitude: resolvedLatitude,
+      longitude: resolvedLongitude,
+      google_place_id: googlePlace?.place_id ?? null,
+      contact_phone: req.body.contact_phone ?? googlePlace?.phone,
+      website_url: req.body.website_url ?? googlePlace?.website,
+    }, true);
 
     // ── Create cafe with owner assignment ─────────────
-    const ownerId = userRole === 'cafe_owner' ? userId : null;
+    const ownerId = req.body.owner_id || null;
     
     const cafe = await db.one<Cafe>(
       `INSERT INTO cafes
         (owner_id, name, area, latitude, longitude, hourly_rate, total_slots,
-         has_generator, wifi_speed_mbps, google_place_id)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+         has_generator, wifi_speed_mbps, google_place_id, description, contact_phone,
+         contact_email, website_url, amenities, opening_hours, house_rules,
+         access_instructions, publication_status, version, published_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13,
+         $14, $15, $16, $17, $18, 'published', 1, NOW())
        RETURNING *`,
       [
         ownerId,
-        resolvedName,
-        resolvedArea,
-        resolvedLatitude,
-        resolvedLongitude,
-        hourly_rate,
-        total_slots,
-        has_generator || false,
-        wifi_speed_mbps || 50,
-        googlePlace?.place_id ?? null,
+        profile.name, profile.area, profile.latitude, profile.longitude,
+        profile.hourly_rate, profile.total_slots, profile.has_generator,
+        profile.wifi_speed_mbps, profile.google_place_id, profile.description,
+        profile.contact_phone, profile.contact_email, profile.website_url,
+        profile.amenities, profile.opening_hours, profile.house_rules,
+        profile.access_instructions,
       ]
+    );
+    await db.none(
+      `INSERT INTO cafe_revisions
+        (cafe_id, owner_id, action, proposed_data, base_version, status,
+         reviewed_by, review_note, submitted_at, reviewed_at)
+       VALUES ($1, $2, 'create', $3, NULL, 'approved', $4,
+         'Published directly by admin', NOW(), NOW())`,
+      [cafe.id, cafe.owner_id || userId, profile, userId]
     );
 
     res.status(201).json({ cafe: serializeCafe(cafe) });
@@ -201,16 +195,10 @@ export async function updateCafe(req: Request, res: Response): Promise<void> {
       return;
     }
 
-    // ── Check permissions ─────────────────────────────
-    if (userRole !== 'admin' && existingCafe.owner_id !== userId) {
-      res.status(403).json({ error: 'You can only update your own cafes' });
+    if (userRole !== 'admin') {
+      res.status(403).json({ error: 'Only admins can publish café edits directly' });
       return;
     }
-
-    // ── Build update query dynamically ─────────────────
-    const updates: string[] = [];
-    const values: unknown[] = [];
-    let paramIndex = 1;
 
     const body = req.body as UpdateCafeRequest;
     if (body.google_place_id) {
@@ -218,69 +206,38 @@ export async function updateCafe(req: Request, res: Response): Promise<void> {
         validatePlaceId(body.google_place_id),
         body.google_session_token
       );
-      body.name = googlePlace.display_name;
+      body.name = body.name || googlePlace.display_name;
       body.area = googlePlace.formatted_address;
       body.latitude = googlePlace.latitude;
       body.longitude = googlePlace.longitude;
       body.google_place_id = googlePlace.place_id;
     }
 
-    if (body.name !== undefined) {
-      updates.push(`name = $${paramIndex++}`);
-      values.push(body.name);
-    }
-    if (body.area !== undefined) {
-      updates.push(`area = $${paramIndex++}`);
-      values.push(body.area);
-    }
-    if (body.latitude !== undefined) {
-      updates.push(`latitude = $${paramIndex++}`);
-      values.push(body.latitude);
-    }
-    if (body.longitude !== undefined) {
-      updates.push(`longitude = $${paramIndex++}`);
-      values.push(body.longitude);
-    }
-    if (body.hourly_rate !== undefined) {
-      if (body.hourly_rate <= 0) {
-        res.status(400).json({ error: 'Hourly rate must be positive' });
-        return;
-      }
-      updates.push(`hourly_rate = $${paramIndex++}`);
-      values.push(body.hourly_rate);
-    }
-    if (body.total_slots !== undefined) {
-      if (body.total_slots <= 0) {
-        res.status(400).json({ error: 'Total slots must be positive' });
-        return;
-      }
-      updates.push(`total_slots = $${paramIndex++}`);
-      values.push(body.total_slots);
-    }
-    if (body.has_generator !== undefined) {
-      updates.push(`has_generator = $${paramIndex++}`);
-      values.push(body.has_generator);
-    }
-    if (body.wifi_speed_mbps !== undefined) {
-      updates.push(`wifi_speed_mbps = $${paramIndex++}`);
-      values.push(body.wifi_speed_mbps);
-    }
-    if (body.google_place_id !== undefined) {
-      updates.push(`google_place_id = $${paramIndex++}`);
-      values.push(body.google_place_id || null);
-    }
-
-    if (updates.length === 0) {
-      res.status(400).json({ error: 'No fields to update' });
-      return;
-    }
-
-    updates.push(`updated_at = NOW()`);
-    values.push(id); // Add id for WHERE clause
-
+    const profile = normalizeCafeProfile({ ...cafeToProfile(existingCafe), ...body }, false);
     const cafe = await db.one<Cafe>(
-      `UPDATE cafes SET ${updates.join(', ')} WHERE id = $${paramIndex} RETURNING *`,
-      values
+      `UPDATE cafes SET name=$1, area=$2, latitude=$3, longitude=$4,
+        hourly_rate=$5, total_slots=$6, has_generator=$7, wifi_speed_mbps=$8,
+        google_place_id=$9, description=$10, contact_phone=$11, contact_email=$12,
+        website_url=$13, amenities=$14, opening_hours=$15, house_rules=$16,
+        access_instructions=$17, publication_status='published', archived_at=NULL,
+        version=version+1, published_at=NOW(), updated_at=NOW()
+       WHERE id=$18 RETURNING *`,
+      [
+        profile.name, profile.area, profile.latitude, profile.longitude,
+        profile.hourly_rate, profile.total_slots, profile.has_generator,
+        profile.wifi_speed_mbps, profile.google_place_id, profile.description,
+        profile.contact_phone, profile.contact_email, profile.website_url,
+        profile.amenities, profile.opening_hours, profile.house_rules,
+        profile.access_instructions, id,
+      ]
+    );
+    await db.none(
+      `INSERT INTO cafe_revisions
+        (cafe_id, owner_id, action, proposed_data, base_version, status,
+         reviewed_by, review_note, submitted_at, reviewed_at)
+       VALUES ($1, $2, 'update', $3, $4, 'approved', $5,
+         'Published directly by admin', NOW(), NOW())`,
+      [id, existingCafe.owner_id || userId, profile, existingCafe.version, userId]
     );
 
     res.json({ cafe: serializeCafe(cafe) });
@@ -316,24 +273,40 @@ export async function deleteCafe(req: Request, res: Response): Promise<void> {
       return;
     }
 
-    // ── Check permissions ─────────────────────────────
-    if (userRole !== 'admin' && existingCafe.owner_id !== userId) {
-      res.status(403).json({ error: 'You can only delete your own cafes' });
+    if (userRole !== 'admin') {
+      res.status(403).json({ error: 'Only admins can archive cafés directly' });
       return;
     }
 
-    // ── Delete cafe (bookings will be cascade deleted) ─
-    if (existingCafe.cover_image_path) {
-      const { error: storageError } = await getSupabaseAdmin()
-        .storage
-        .from(CAFE_COVERS_BUCKET)
-        .remove([existingCafe.cover_image_path]);
-      if (storageError) console.warn('Could not remove cafe cover during deletion:', storageError);
-    }
-
-    await db.none('DELETE FROM cafes WHERE id = $1', [id]);
-
-    res.json({ message: 'Cafe deleted successfully' });
+    await db.tx(async (t) => {
+      await t.none(
+        `UPDATE cafes SET publication_status='archived', archived_at=NOW(),
+          version=version+1, updated_at=NOW() WHERE id=$1`,
+        [id]
+      );
+      await t.none(
+        `UPDATE bookings SET status='cancelled',
+          cancellation_reason='Café archived by administrator'
+         WHERE cafe_id=$1 AND status IN ('pending','confirmed')
+           AND (
+             date > (NOW() AT TIME ZONE 'Asia/Colombo')::date
+             OR (
+               date = (NOW() AT TIME ZONE 'Asia/Colombo')::date
+               AND end_time > EXTRACT(HOUR FROM NOW() AT TIME ZONE 'Asia/Colombo')
+             )
+           )`,
+        [id]
+      );
+      await t.none(
+        `INSERT INTO cafe_revisions
+          (cafe_id, owner_id, action, proposed_data, base_version, status,
+           reviewed_by, review_note, submitted_at, reviewed_at)
+         VALUES ($1,$2,'archive',$3,$4,'approved',$5,
+           'Archived directly by admin',NOW(),NOW())`,
+        [id, existingCafe.owner_id || userId, cafeToProfile(existingCafe), existingCafe.version, userId]
+      );
+    });
+    res.json({ message: 'Café archived; future active bookings were cancelled and history was preserved' });
   } catch (error) {
     console.error('Error deleting cafe:', error);
     res.status(500).json({ error: 'Failed to delete cafe' });
@@ -426,8 +399,17 @@ export async function attachCafeCover(req: Request, res: Response): Promise<void
     }
 
     const updated = await db.one<Cafe>(
-      'UPDATE cafes SET cover_image_path = $1, updated_at = NOW() WHERE id = $2 RETURNING *',
+      `UPDATE cafes SET cover_image_path = $1, version = version + 1,
+       published_at = NOW(), updated_at = NOW() WHERE id = $2 RETURNING *`,
       [path, id]
+    );
+    await db.none(
+      `INSERT INTO cafe_revisions
+        (cafe_id, owner_id, action, proposed_data, base_version, status,
+         reviewed_by, review_note, submitted_at, reviewed_at)
+       VALUES ($1,$2,'update',$3,$4,'approved',$5,
+         'Public cover changed directly by admin',NOW(),NOW())`,
+      [id, cafe.owner_id || req.userId, cafeToProfile(updated), cafe.version, req.userId]
     );
 
     if (cafe.cover_image_path && cafe.cover_image_path !== path) {
@@ -451,8 +433,17 @@ export async function deleteCafeCover(req: Request, res: Response): Promise<void
     if (!id) throw { statusCode: 400, message: 'Cafe ID is required' };
     const cafe = await requireManagedCafe(id, req.userId, req.userRole);
     const updated = await db.one<Cafe>(
-      'UPDATE cafes SET cover_image_path = NULL, updated_at = NOW() WHERE id = $1 RETURNING *',
+      `UPDATE cafes SET cover_image_path = NULL, version = version + 1,
+       published_at = NOW(), updated_at = NOW() WHERE id = $1 RETURNING *`,
       [id]
+    );
+    await db.none(
+      `INSERT INTO cafe_revisions
+        (cafe_id, owner_id, action, proposed_data, base_version, status,
+         reviewed_by, review_note, submitted_at, reviewed_at)
+       VALUES ($1,$2,'update',$3,$4,'approved',$5,
+         'Public cover removed directly by admin',NOW(),NOW())`,
+      [id, cafe.owner_id || req.userId, cafeToProfile(updated), cafe.version, req.userId]
     );
 
     if (cafe.cover_image_path) {

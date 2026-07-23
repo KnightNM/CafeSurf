@@ -16,7 +16,25 @@ const cafe: Cafe = {
   wifi_speed_mbps: 120,
   google_place_id: null,
   google_maps_url: null,
-  cover_image_url: null,
+      cover_image_url: null,
+      description: '',
+      contact_phone: null,
+      contact_email: null,
+      website_url: null,
+      amenities: [],
+      opening_hours: {
+        monday: { closed: false, open: 0, close: 24 },
+        tuesday: { closed: false, open: 0, close: 24 },
+        wednesday: { closed: false, open: 0, close: 24 },
+        thursday: { closed: false, open: 0, close: 24 },
+        friday: { closed: false, open: 0, close: 24 },
+        saturday: { closed: false, open: 0, close: 24 },
+        sunday: { closed: false, open: 0, close: 24 },
+      },
+      house_rules: '',
+      access_instructions: '',
+      publication_status: 'published',
+      version: 1,
 };
 
 describe('WorkspaceCover', () => {

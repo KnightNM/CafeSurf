@@ -15,21 +15,21 @@ const router = Router();
 
 /**
  * POST /api/cafes/management
- * Create a new cafe (cafe_owner, admin)
+ * Create and immediately publish a new cafe (admin only)
  */
-router.post('/', authenticate, authorize('cafe_owner', 'admin'), createCafe);
+router.post('/', authenticate, authorize('admin'), createCafe);
 
 /**
  * PUT /api/cafes/management/:id
  * Update a cafe (owner only, admin)
  */
-router.put('/:id', authenticate, authorize('cafe_owner', 'admin'), updateCafe);
+router.put('/:id', authenticate, authorize('admin'), updateCafe);
 
 /**
  * DELETE /api/cafes/management/:id
  * Delete a cafe (owner only, admin)
  */
-router.delete('/:id', authenticate, authorize('cafe_owner', 'admin'), deleteCafe);
+router.delete('/:id', authenticate, authorize('admin'), deleteCafe);
 
 /**
  * GET /api/cafes/management/my-cafes
@@ -40,21 +40,21 @@ router.get('/my-cafes', authenticate, authorize('cafe_owner', 'admin'), getMyCaf
 router.post(
   '/:id/cover-image/upload-url',
   authenticate,
-  authorize('cafe_owner', 'admin'),
+  authorize('admin'),
   createCafeCoverUploadUrl
 );
 
 router.put(
   '/:id/cover-image',
   authenticate,
-  authorize('cafe_owner', 'admin'),
+  authorize('admin'),
   attachCafeCover
 );
 
 router.delete(
   '/:id/cover-image',
   authenticate,
-  authorize('cafe_owner', 'admin'),
+  authorize('admin'),
   deleteCafeCover
 );
 

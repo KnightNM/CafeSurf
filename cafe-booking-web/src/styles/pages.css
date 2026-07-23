@@ -84,6 +84,11 @@
   transform: translate(calc(var(--pointer-x) * -8px), calc(var(--pointer-y) * -8px));
 }
 
+.motionDecorations {
+  position: absolute;
+  inset: 0;
+}
+
 .motionGrid {
   position: absolute;
   top: 20%;
@@ -237,6 +242,35 @@
   max-width: 1440px;
   margin: 0 auto;
   padding: clamp(72px, 9vw, 130px) clamp(22px, 5vw, 72px);
+}
+
+.discoveryResults {
+  padding-top: 24px;
+}
+
+.scrollChapter {
+  --chapter-progress: 0;
+  --chapter-presence: 1;
+  position: relative;
+  min-height: 145vh;
+}
+
+.scrollChapterStage {
+  position: sticky;
+  top: 86px;
+  display: grid;
+  min-height: calc(100vh - 86px);
+  align-items: center;
+  opacity: var(--chapter-presence);
+  transform:
+    translateY(calc(22px - var(--chapter-progress) * 44px))
+    scale(calc(.975 + var(--chapter-progress) * .025));
+  transform-origin: center;
+  will-change: transform, opacity;
+}
+
+.scrollChapterStage > section {
+  width: 100%;
 }
 
 .editorialHeading {
@@ -501,6 +535,29 @@
 
 .siteFooter div { display: grid; gap: 6px; }
 .siteFooter strong { color: var(--porcelain); font-family: var(--display); font-size: 1.5rem; }
+
+.profileDetailsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 28px;
+}
+
+.profileDetailsGrid > article {
+  padding: clamp(24px, 4vw, 42px);
+  background: rgba(255,253,247,.78);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+}
+
+.profileDetailsGrid h2 { margin: 5px 0 24px; color: var(--forest); font-size: clamp(1.8rem, 3vw, 3rem); }
+.profileDetailsGrid h3 { margin: 22px 0 6px; color: var(--forest); }
+.profileDetailsGrid p { color: var(--muted); line-height: 1.65; }
+.publicHours { display: grid; }
+.publicHours > div { display: flex; justify-content: space-between; gap: 20px; padding: 10px 0; border-bottom: 1px solid var(--line); text-transform: capitalize; }
+.publicHours span { color: var(--muted); }
+.contactStack { display: grid; gap: 12px; }
+.contactStack a { color: var(--forest); text-decoration: underline; text-underline-offset: 4px; }
 
 .spacePage {
   padding-top: 38px;

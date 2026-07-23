@@ -13,8 +13,8 @@ café-owner registrations.
 - **Authorization:** `customer`, `cafe_owner`, and `admin` roles stored in
   `public.users` and loaded by Express for every authenticated request
 - **Auth email:** Supabase Auth using Resend SMTP in production
-- **Cover images:** Public-read Supabase Storage bucket, with authenticated
-  owner uploads signed and verified by Express
+- **Cover images:** Public approved covers plus a private revision-cover bucket;
+  Express signs and verifies both workflows
 - **Locations:** Google Places API (New) through an authenticated Express proxy;
   cafés store the stable Place ID and fetch current Google details when needed
 - **Design:** Self-hosted Bricolage Grotesque and DM Sans, responsive routed
@@ -31,12 +31,18 @@ Bearer token.
 - Customers can book 1–capacity seats and submit one pending owner application.
 - Admins approve or reject owner applications.
 - Approval transactionally changes the applicant's role to `cafe_owner`.
-- Café owners manage only their cafés, cover photos, and their cafés' bookings.
-- Café owners and administrators can find and verify a Sri Lankan café through
-  Google Maps while creating or editing it.
-- Admins have global café, booking, and owner-application access.
-- Customers can view current Google place details and open the café directly in
-  Google Maps.
+- Café owners manage bookings immediately, while café creation, profile edits,
+  cover changes, and removal requests move through private drafts and admin approval.
+- Owners can edit pending/rejected drafts, resubmit them, or withdraw them.
+- Admins review current-versus-proposed field diffs; approval publishes the full
+  snapshot atomically, while rejection leaves the live profile unchanged.
+- Admin café edits publish immediately and create an audit revision.
+- Approved removal archives the café and cancels future active bookings without
+  deleting booking history.
+- New cafés are linked to a Google Place ID. The display name remains editable,
+  while the verified address and coordinates stay tied to Google.
+- CafeSurf weekly hours control public availability and booking validation.
+- Public visitors can view current Google place details and open the café in Maps.
 
 Rates are shown per seat/hour. A booking total is:
 
@@ -46,6 +52,9 @@ hourly_rate × hours × team_size
 
 When a café has no uploaded cover, the web app creates a deterministic abstract
 cover from the café's name, area, capacity, Wi-Fi, and power details.
+
+The homepage's floating workspace objects use `/api/home/summary`; they show
+role-appropriate database information or an explicit empty state, never samples.
 
 ## Start here
 
